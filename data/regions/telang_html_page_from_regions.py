@@ -30,6 +30,10 @@ for region in regions:
     eprint(region['slug'], name, '\t', ''.join(region['text'])[:80])
     regions_for_name[name].append(region)
 
+dump = list(sorted(regions_for_name.items()))
+json.dump(dump, open('telang-regions-out.json', 'w'), indent=2)
+
+
 # TODO(shreevatsa): Remove this hard-coding. Get page dimensions from `content` (after saving it there).
 totWidth = 3125.0
 totHeight = 5209.0
@@ -67,7 +71,7 @@ header = '''
 '''
 print(header)
 
-for name, regions in sorted(regions_for_name.items()):
+for name, regions in json.load(open('telang-regions-out.json')):
     blocks = []
     for region in regions:
         n = region['slug'] - 1
