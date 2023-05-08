@@ -41,11 +41,15 @@ for (name, types_and_regions) in regions_for_name.items():
     dump[name][region_type].append(region)
 # ORDER BY name
 dump2 = [(name, dump[name]) for name in sorted(dump)]
-json.dump(dump2, open('telang-regions-out.json', 'w'), indent=2)
+dump3 = {
+   'totWidth': 3125.0,
+   'totHeight': 5209.0,
+   'imageUrlPrefix': 'https://archive.org/download/dli.granth.78136',
+   'pageUrlPrefix': 'https://archive.org/details/dli.granth.78136',
+   'regions': dump2,
+}
+json.dump(dump3, open('telang-regions-out.json', 'w'), indent=2)
 
-# TODO(shreevatsa): Remove this hard-coding. Get page dimensions from `content` (after saving it there).
-totWidth = 3125.0
-totHeight = 5209.0
 header = '''
 <!doctype html>
 <html>
@@ -80,7 +84,12 @@ header = '''
 '''
 print(header)
 
-for (name, types_and_regions) in json.load(open('telang-regions-out.json')):
+from_file = json.load(open('telang-regions-out.json'))
+totWidth = from_file['totWidth']
+totHeight = from_file['totHeight']
+imageUrlPrefix = from_file['imageUrlPrefix']
+pageUrlPrefix = from_file['pageUrlPrefix']
+for (name, types_and_regions) in from_file['regions']:
   for (region_type, regions) in types_and_regions.items():
     # Generate HTML for this (name, region_type)
     kSuffix = {'verse': '', 'endnote': 'n', 'footnote': 'f', 'header': ''}
@@ -92,8 +101,8 @@ for (name, types_and_regions) in json.load(open('telang-regions-out.json')):
         y = region['ymin'] / totHeight; y = int(y * 1000) / 1000
         w = region['width'] / totWidth; w = (int(w * 100) + 2) / 100
         h = region['height'] / totHeight; h = (int(h * 1000) + 5) / 1000
-        image_url = 'https://archive.org/download/dli.granth.78136/page/' + f'n{n}_x{x}_y{y}_w{w}_h{h}_s1.jpg'
-        page_url = f'https://archive.org/details/dli.granth.78136/page/n{n}/mode/2up'
+        image_url = imageUrlPrefix + '/page/' + f'n{n}_x{x}_y{y}_w{w}_h{h}_s1.jpg'
+        page_url = pageUrlPrefix + f'/page/n{n}/mode/2up'
         s += f'<a href="{page_url}"><img src={image_url} class="inner-img"></a>\n'
         for line in region['text']: t += f'<p>{line}</p>\n'
     print(f'''
