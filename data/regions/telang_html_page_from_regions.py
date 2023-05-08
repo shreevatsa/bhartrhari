@@ -5,15 +5,13 @@ import sys
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
-regions = json.load(open('telang-regions.json'))
 regions_for_name = collections.defaultdict(list)
-
+last_name = '000'
 # Pages 51–84: Nīti-śataka verses and footnotes
 # Pages 85–126: Vairāgya-śataka verses and footnotes
 # Pages 127–160: Nīti-śataka notes
 # Pages 161–195: Vairāgya-śataka notes
-last_name = '000'
-for region in regions:
+for region in json.load(open('telang-regions.json')):
     slug = int(region['slug'])
     name = region['name']
     region_type = None
@@ -36,21 +34,14 @@ for region in regions:
     # eprint(region['slug'], name, '\t', ''.join(region['text'])[:80])
     regions_for_name[name].append((region_type, region))
 
-# Earlier: Need to sort so that
-#     'N001', 'N002', 'N003', 'N004', 'N001f', 'N002f', 'N003f', 'N004f', 'N005', ...
-# turns into
-#     'N001', 'N001f', 'N001n', 'N002', 'N002f', 'N002n', 'N003', 'N003f', 'N003n', 'N004', ...
-# Now: Need to group by name and then type, for the same reason.
+# GROUP BY name, type
 dump = collections.defaultdict(lambda: collections.defaultdict(list))
 for (name, types_and_regions) in regions_for_name.items():
-  eprint(name)
-  tmp = dump[name]
   for (region_type, region) in types_and_regions:
-    tmp[region_type].append(region)
-  for (region_type, regions) in tmp.items():
-      eprint("    ", region_type, len(regions))
-json.dump(dump, open('telang-regions-out.json', 'w'), indent=2)
-
+    dump[name][region_type].append(region)
+# ORDER BY name
+dump2 = [(name, dump[name]) for name in sorted(dump)]
+json.dump(dump2, open('telang-regions-out.json', 'w'), indent=2)
 
 # TODO(shreevatsa): Remove this hard-coding. Get page dimensions from `content` (after saving it there).
 totWidth = 3125.0
@@ -89,12 +80,13 @@ header = '''
 '''
 print(header)
 
-d = json.load(open('telang-regions-out.json'))
-
-for name in sorted(d):
-  for region_type in d[name]:
-    blocks = []
-    for region in d[name][region_type]:
+for (name, types_and_regions) in json.load(open('telang-regions-out.json')):
+  for (region_type, regions) in types_and_regions.items():
+    # Generate HTML for this (name, region_type)
+    kSuffix = {'verse': '', 'endnote': 'n', 'footnote': 'f', 'header': ''}
+    s = f'<p>{name + kSuffix[region_type]}</p>\n'
+    t = ''
+    for region in regions:
         n = region['slug'] - 1
         x = region['xmin'] / totWidth; x = int(x * 100) / 100
         y = region['ymin'] / totHeight; y = int(y * 1000) / 1000
@@ -102,24 +94,13 @@ for name in sorted(d):
         h = region['height'] / totHeight; h = (int(h * 1000) + 5) / 1000
         image_url = 'https://archive.org/download/dli.granth.78136/page/' + f'n{n}_x{x}_y{y}_w{w}_h{h}_s1.jpg'
         page_url = f'https://archive.org/details/dli.granth.78136/page/n{n}/mode/2up'
-        text = region['text']
-        blocks.append((region_type, image_url, page_url, text))
-    # print(name, urls)
-    
-    # Generate HTML for this name
-    kSuffix = {'verse': '', 'endnote': 'n', 'footnote': 'f', 'header': ''}
-    s = f'<p>{name + kSuffix[region_type]}</p>\n'
-    t = ''
-    for (region_type, image_url, page_url, text) in blocks:
         s += f'<a href="{page_url}"><img src={image_url} class="inner-img"></a>\n'
-        for line in text:
-            t += f'<p>{line}</p>\n'
-    s = f'''
+        for line in region['text']: t += f'<p>{line}</p>\n'
+    print(f'''
     <div class="outer-s">{s}
     <details>
     <summary>(not proofread)</summary>
     {t}
     </details>
     </div>
-    '''
-    print(s)
+    ''')
