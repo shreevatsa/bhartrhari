@@ -106,7 +106,7 @@ for (k, vs) in versions.items():
                 region_name = version.strip()
                 versions_for_template.append({
                     'title': book_name,
-                    'image_urls': ['https://calm-gaufre-6360e8.netlify.app/data/images/' + version],
+                    'image_urls': ['../data/images/' + version],
                 })
                 continue
 
