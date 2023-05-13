@@ -99,7 +99,7 @@ index = open('web/index.html', 'w')
 for (k, vs) in versions.items():
     k = f'K{int(k):03}'
     versions_for_template = []
-    kOrder = ['Brough', 'Ryder', 'Tawney', 'Mādhavānanda', 'Telang', 'Gopinath1914', 'Gopinath1896']
+    kOrder = ['Ryder', 'Brough', 'Tawney', 'Mādhavānanda', 'Telang', 'Gopinath1914', 'Gopinath1896']
     for (book_name, versions_by_book) in sorted(vs.items(), key=lambda name_and_v: kOrder.index(name_and_v[0])):
         for version in versions_by_book:
             if book_name == 'Telang':
