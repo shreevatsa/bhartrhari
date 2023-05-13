@@ -111,18 +111,16 @@ for (name, types_and_regions) in from_file['regions']:
         y = region['ymin'] / totHeight; y = int(y * 1000) / 1000
         w = region['width'] / totWidth; w = (int(w * 100) + 2) / 100
         h = region['height'] / totHeight; h = (int(h * 1000) + 5) / 1000
-        image_url = 'https://archive.org/download/EpigramsAttributedToBhartrhariKosambiBookmarked/page/' + f'n{n}_x{x}_y{y}_w{w}_h{h}_s2.jpg'
-        page_url = f'https://archive.org/details/EpigramsAttributedToBhartrhariKosambiBookmarked/page/n{n}/mode/2up'
-        text = region['text']
+        image_url = imageUrlPrefix + '/page/' + f'n{n}_x{x}_y{y}_w{w}_h{h}_s2.jpg'
+        page_url = pageUrlPrefix + f'/page/n{n}/mode/2up'
         s += f'<a href="{page_url}"><img src={image_url} class="inner-img"></a>\n'
-        for line in text:
+        for line in region['text']:
             t += f'<p>{line}</p>\n'
-    s = f'''
+    print(f'''
     <div class="outer-s">{s}
     <details>
     <summary>(not proofread)</summary>
     {t}
     </details>
     </div>
-    '''
-    print(s)
+    ''')
