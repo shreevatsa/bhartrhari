@@ -95,6 +95,14 @@ env = Environment(
 )
 
 index = open('web/index.html', 'w')
+index.write('''
+<script>
+var currentUrl = window.location.href;
+if (!currentUrl.endsWith('/') && !currentUrl.endsWith('.html')) {
+  window.location.href = currentUrl + '/';
+}
+</script>
+''')
 
 for (k, vs) in versions.items():
     k = f'K{int(k):03}'
