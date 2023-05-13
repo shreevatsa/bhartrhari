@@ -4,14 +4,14 @@ import json
 # Read the CSV files (v -> K) and map them back (K -> [v])
 versions = collections.defaultdict(lambda: collections.defaultdict(list))
 
-with open('../data/alignment/Ryder.csv') as f:
+with open('data/alignment/Ryder.csv') as f:
     reader = csv.reader(f)
     # n,Ryder,Kosambi
     for row in reader:
         (n, ryder, kosambi) = row
         versions[kosambi]['Ryder'].append(ryder)
 
-with open('../data/alignment/Telang-Tawney.csv') as f:
+with open('data/alignment/Telang-Tawney.csv') as f:
     reader = csv.reader(f)
     # Telang,,Kosambi,Tawney,Tawney verse translation?
     for row in reader:
@@ -19,14 +19,14 @@ with open('../data/alignment/Telang-Tawney.csv') as f:
         versions[kosambi]['Telang'].append(telang)
         versions[kosambi]['Tawney'].append(tawney)
 
-with open('../data/alignment/Madhavananda.csv') as f:
+with open('data/alignment/Madhavananda.csv') as f:
     reader = csv.reader(f)
     # ,Mādhavānanda,Kosambi
     for row in reader:
         (_, madhavananda, kosambi) = row
         versions[kosambi]['Mādhavānanda'].append(madhavananda)
 
-with open('../data/alignment/Gopinath.csv') as f:
+with open('data/alignment/Gopinath.csv') as f:
     reader = csv.reader(f)
     # Comment,Gopinath-num,Gopinath1896-img,Gopinath1914-img,Kosambi
     for row in reader:
@@ -39,7 +39,7 @@ del versions['']
 pageUrlPrefixes = {}
 imageUrlPrefixes = {}
 telang = {}
-with open('../data/regions/telang-regions-out.json') as file:
+with open('data/regions/telang-regions-out.json') as file:
     t = json.load(file)
     totWidth = t['totWidth']
     totHeight = t['totHeight']
@@ -58,7 +58,7 @@ with open('../data/regions/telang-regions-out.json') as file:
                     'text': region['text'],
                 })
 kosambi = {}
-with open('../data/regions/kosambi-regions-out.json') as file:
+with open('data/regions/kosambi-regions-out.json') as file:
     t = json.load(file)
     totWidth = t['totWidth']
     totHeight = t['totHeight']
@@ -87,6 +87,8 @@ env = Environment(
     undefined=StrictUndefined
 )
 
+index = open('web/index.html', 'w')
+
 for (k, vs) in versions.items():
     k = f'K{int(k):03}'
     versions_for_template = []
@@ -96,7 +98,7 @@ for (k, vs) in versions.items():
             if book_name == 'Telang':
                 region_name = version.strip()
                 versions_for_template.append({
-                    'title': book_name,
+                    'title': f'{book_name} ({region_name})',
                     'regions': telang[region_name],
                     'pageUrlPrefix': pageUrlPrefixes[book_name],
                     'imageUrlPrefix': imageUrlPrefixes[book_name],
@@ -144,9 +146,11 @@ for (k, vs) in versions.items():
             'imageUrlPrefix': imageUrlPrefixes['Kosambi'],
         })
     # Render the template with data
-    template = env.get_template('template.html')
+    template = env.get_template('gen/template.html')
     output = template.render(
         knum = f'K{k}',
         versions = versions_for_template,
     )
-    open(f'{k}.html', 'w').write(output)
+    open(f'web/{k}.html', 'w').write(output)
+    index.write(f'<li><a href="{k}.html">{k}</a></li>\n')
+index.close()
