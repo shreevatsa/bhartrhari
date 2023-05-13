@@ -11,6 +11,13 @@ with open('data/alignment/Ryder.csv') as f:
         (n, ryder, kosambi) = row
         versions[kosambi]['Ryder'].append(ryder)
 
+with open('data/alignment/Brough.csv') as f:
+    reader = csv.reader(f)
+    # n,Brough,Kosambi
+    for row in reader:
+        (n, brough, kosambi) = row
+        versions[kosambi]['Brough'].append(brough)
+
 with open('data/alignment/Telang-Tawney.csv') as f:
     reader = csv.reader(f)
     # Telang,,Kosambi,Tawney,Tawney verse translation?
@@ -92,7 +99,7 @@ index = open('web/index.html', 'w')
 for (k, vs) in versions.items():
     k = f'K{int(k):03}'
     versions_for_template = []
-    kOrder = ['Ryder', 'Tawney', 'Mādhavānanda', 'Telang', 'Gopinath1914', 'Gopinath1896']
+    kOrder = ['Brough', 'Ryder', 'Tawney', 'Mādhavānanda', 'Telang', 'Gopinath1914', 'Gopinath1896']
     for (book_name, versions_by_book) in sorted(vs.items(), key=lambda name_and_v: kOrder.index(name_and_v[0])):
         for version in versions_by_book:
             if book_name == 'Telang':
