@@ -72,6 +72,10 @@
             } */
         }
 
+        img.page-image {
+            max-width: 100%;
+        }
+
     </style>
 </head>
 
@@ -86,6 +90,10 @@
                 <span class="line{% if line.indented %} indented{% endif %}">{{ line.text }}</span>
                 {% endfor %}
             </div>
+            {% elif 'image_urls' in version %}
+            {% for url in version.image_urls %}
+            <img class="page-image" src="{{url}}">
+            {% endfor %}
             {% else %}
             {% for (region_type, regions) in version.regions.items() %}
             <div class="outer-s">
