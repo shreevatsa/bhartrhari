@@ -48,6 +48,30 @@
             margin-top: 0;
         }
 
+        div.outer-s {
+            border-radius: 0.5rem;
+            border-width: 2px;
+            border-color: #3B82F6;
+            border-style: solid;
+
+            /* margin: 0.5rem;
+            @media (min-width: 768px) {
+                margin: 2.5rem;
+            } */
+        }
+
+        img.inner-img {
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.375rem;
+            border-width: 2px;
+            max-width: 100%;
+            /* width: 91.666667%;
+            @media (min-width: 768px) {
+                width: 75%;
+            } */
+        }
+
     </style>
 </head>
 
@@ -56,11 +80,32 @@
         {% for version in versions %}
         <div class="translation">
             <h3>{{version.title}}</h3>
+            {% if 'lines' in version and version.lines %}
             <div class="lines">
                 {% for line in version.lines %}
                 <span class="line{% if line.indented %} indented{% endif %}">{{ line.text }}</span>
                 {% endfor %}
             </div>
+            {% else %}
+            {% for (region_type, regions) in version.regions.items() %}
+            <div class="outer-s">
+                <h4>{{region_type}}</h4>
+                {% for region in regions %}
+                <a href="{{version.pageUrlPrefix}}/page/n{{region.n}}/mode/2up"><img
+                        src="{{version.imageUrlPrefix}}/page/n{{region.n}}_x{{region.x}}_y{{region.y}}_w{{region.w}}_h{{region.h}}.jpg"
+                        class="inner-img"></a>
+                {% endfor %}
+                <details>
+                    <summary>(not proofread)</summary>
+                    {% for region in regions %}
+                    {% for line in region['text'] %}
+                    <p>{{line}}</p>
+                    {% endfor %}
+                    {% endfor %}
+                </details>
+            </div>
+            {% endfor %}
+            {% endif %}
         </div>
         {% endfor %}
     </div>

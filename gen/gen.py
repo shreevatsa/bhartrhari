@@ -1,5 +1,6 @@
-import csv
 import collections
+import csv
+import json
 # Read the CSV files (v -> K) and map them back (K -> [v])
 versions = collections.defaultdict(lambda: collections.defaultdict(list))
 
@@ -32,9 +33,30 @@ with open('../data/alignment/Gopinath.csv') as f:
         (comment, gopinath_num, gopinath1896_img, gopinath1914_img, kosambi) = row
         versions[kosambi]['Gopinath1896'].append(gopinath1896_img)
         versions[kosambi]['Gopinath1914'].append(gopinath1914_img)
-
 del versions['Kosambi']
 del versions['']
+
+pageUrlPrefixes = {}
+imageUrlPrefixes = {}
+telang = {}
+with open('../data/regions/telang-regions-out.json') as file:
+    t = json.load(file)
+    totWidth = t['totWidth']
+    totHeight = t['totHeight']
+    imageUrlPrefixes['Telang'] = imageUrlPrefix = t['imageUrlPrefix'] + '_202305'
+    pageUrlPrefixes['Telang'] = pageUrlPrefix = t['pageUrlPrefix'] + '_202305'
+    for (name, types_and_regions) in t['regions']:
+        telang[name] = collections.defaultdict(list)
+        for (type, regions) in types_and_regions.items():
+            for region in regions:
+                telang[name][type].append({
+                    'n': region['slug'] - 1,
+                    'x': int(region['xmin'] / totWidth * 100) / 100,
+                    'y': int(region['ymin'] / totHeight * 1000) / 1000,
+                    'w': (int(region['width'] / totWidth * 100) + 2) / 100,
+                    'h': (int(region['height'] / totHeight * 1000) + 5) / 1000,
+                    'text': region['text'],
+                })
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape, StrictUndefined
 # Create a custom Jinja2 environment
@@ -47,24 +69,38 @@ env = Environment(
 for (k, vs) in versions.items():
     k = f'K{int(k):03}'
     versions_for_template = []
-    for (name, versions_by_book) in vs.items():
+    kOrder = ['Ryder', 'Tawney', 'Mādhavānanda', 'Telang', 'Gopinath1914', 'Gopinath1896']
+    for (name, versions_by_book) in sorted(vs.items(), key=lambda name_and_v: kOrder.index(name_and_v[0])):
         for version in versions_by_book:
+            if name == 'Telang':
+                region_name = version.strip()
+                versions_for_template.append({
+                    'title': name,
+                    'regions': telang[region_name],
+                    'pageUrlPrefix': pageUrlPrefixes[name],
+                    'imageUrlPrefix': imageUrlPrefixes[name],
+                })
+                continue
+            # Ignore leading and trailing blank lines
             lines = version.splitlines()
             while lines and lines[0].strip() == '': lines = lines[1:]
             while lines and lines[-1].strip() == '': lines = lines[:-1]
             if not lines: continue
+            # Expand tabs, and strip any common leading spaces
+            lines_for_template = []
             common = 10**9
             lines_expanded = []
             for line in lines:
                 line = line.replace('\t', '    ')
                 lines_expanded.append(line)
                 if line.lstrip(): common = min(common, len(line) - len(line.lstrip()))
-            lines_for_template = []
+            # Now we have all the lines we need, for passing into the template.
             for line in lines_expanded:
                 assert line.strip() == '' or line[:common] == ' ' * common
+                line = line[common:]
                 lines_for_template.append({
-                    'indented': False,
-                    'text': line[common:]
+                    'indented': line.startswith(' '),
+                    'text': line,
                 })
             versions_for_template.append({
                 'title': name,
