@@ -1,47 +1,6 @@
 import collections
 import csv
 import json
-# Read the CSV files (v -> K) and map them back (K -> [v])
-versions = collections.defaultdict(lambda: collections.defaultdict(list))
-
-with open('data/alignment/Ryder.csv') as f:
-    reader = csv.reader(f)
-    # n,Ryder,Kosambi
-    for row in reader:
-        (n, ryder, kosambi) = row
-        versions[kosambi]['Ryder'].append(ryder)
-
-with open('data/alignment/Brough.csv') as f:
-    reader = csv.reader(f)
-    # n,Brough,Kosambi
-    for row in reader:
-        (n, brough, kosambi) = row
-        versions[kosambi]['Brough'].append(brough)
-
-with open('data/alignment/Telang-Tawney.csv') as f:
-    reader = csv.reader(f)
-    # Telang,,Kosambi,Tawney,Tawney verse translation?
-    for row in reader:
-        (telang, snippet, kosambi, tawney, tawneyvtf) = row
-        versions[kosambi]['Telang'].append(telang)
-        versions[kosambi]['Tawney'].append(tawney)
-
-with open('data/alignment/Madhavananda.csv') as f:
-    reader = csv.reader(f)
-    # ,Mādhavānanda,Kosambi
-    for row in reader:
-        (_, madhavananda, kosambi) = row
-        versions[kosambi]['Mādhavānanda'].append(madhavananda)
-
-with open('data/alignment/Gopinath.csv') as f:
-    reader = csv.reader(f)
-    # Comment,Gopinath-num,Gopinath1896-img,Gopinath1914-img,Kosambi
-    for row in reader:
-        (comment, gopinath_num, gopinath1896_img, gopinath1914_img, kosambi) = row
-        versions[kosambi]['Gopinath1896'].append(gopinath1896_img)
-        versions[kosambi]['Gopinath1914'].append(gopinath1914_img)
-del versions['Kosambi']
-del versions['']
 
 regions_per_book = {}
 with open('data/regions/telang-regions-out.json') as file:
@@ -94,6 +53,48 @@ with open('data/regions/kosambi-regions-out.json') as file:
         'imageUrlPrefix': imageUrlPrefix,
         'pageUrlPrefix': pageUrlPrefix,
     }
+
+# Read the CSV files (v -> K) and map them back (K -> [v])
+versions = collections.defaultdict(lambda: collections.defaultdict(list))
+
+with open('data/alignment/Ryder.csv') as f:
+    reader = csv.reader(f)
+    # n,Ryder,Kosambi
+    for row in reader:
+        (n, ryder, kosambi) = row
+        versions[kosambi]['Ryder'].append(ryder)
+
+with open('data/alignment/Brough.csv') as f:
+    reader = csv.reader(f)
+    # n,Brough,Kosambi
+    for row in reader:
+        (n, brough, kosambi) = row
+        versions[kosambi]['Brough'].append(brough)
+
+with open('data/alignment/Telang-Tawney.csv') as f:
+    reader = csv.reader(f)
+    # Telang,,Kosambi,Tawney,Tawney verse translation?
+    for row in reader:
+        (telang, snippet, kosambi, tawney, tawneyvtf) = row
+        versions[kosambi]['Telang'].append(telang)
+        versions[kosambi]['Tawney'].append(tawney)
+
+with open('data/alignment/Madhavananda.csv') as f:
+    reader = csv.reader(f)
+    # ,Mādhavānanda,Kosambi
+    for row in reader:
+        (_, madhavananda, kosambi) = row
+        versions[kosambi]['Mādhavānanda'].append(madhavananda)
+
+with open('data/alignment/Gopinath.csv') as f:
+    reader = csv.reader(f)
+    # Comment,Gopinath-num,Gopinath1896-img,Gopinath1914-img,Kosambi
+    for row in reader:
+        (comment, gopinath_num, gopinath1896_img, gopinath1914_img, kosambi) = row
+        versions[kosambi]['Gopinath1896'].append(gopinath1896_img)
+        versions[kosambi]['Gopinath1914'].append(gopinath1914_img)
+del versions['Kosambi']
+del versions['']
 
 json.dump(
     {
