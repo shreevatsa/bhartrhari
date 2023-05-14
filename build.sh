@@ -1,3 +1,3 @@
 #!/bin/sh
-set -euxo pipefail
+set -eux
 python3 gen/data.py && python3 gen/gen.py
