@@ -3,10 +3,9 @@ import json
 
 data = json.load(open('data.json'))
 versions = data['versions']
-telang = data['telang']
-kosambi = data['kosambi']
-pageUrlPrefixes = data['pageUrlPrefixes']
-imageUrlPrefixes = data['imageUrlPrefixes']
+regions_per_book = data['regions_per_book']
+telang = regions_per_book['Telang']['regions']
+kosambi = regions_per_book['Kosambi']['regions']
 
 # Create a custom Jinja2 environment
 env = Environment(
@@ -36,8 +35,8 @@ for (k, vs) in versions.items():
                 versions_for_template.append({
                     'title': f'{book_name} ({region_name})',
                     'regions': telang[region_name],
-                    'pageUrlPrefix': pageUrlPrefixes[book_name],
-                    'imageUrlPrefix': imageUrlPrefixes[book_name],
+                    'pageUrlPrefix': regions_per_book[book_name]['pageUrlPrefix'],
+                    'imageUrlPrefix': regions_per_book[book_name]['imageUrlPrefix'],
                 })
                 continue
             if book_name in ['Gopinath1914', 'Gopinath1896']:
@@ -78,8 +77,8 @@ for (k, vs) in versions.items():
         versions_for_template.append({
             'title': 'Kosambi',
             'regions': kosambi[region_name],
-            'pageUrlPrefix': pageUrlPrefixes['Kosambi'],
-            'imageUrlPrefix': imageUrlPrefixes['Kosambi'],
+            'pageUrlPrefix': regions_per_book['Kosambi']['pageUrlPrefix'],
+            'imageUrlPrefix': regions_per_book['Kosambi']['imageUrlPrefix'],
         })
     # Render the template with data
     template = env.get_template('gen/template.html')

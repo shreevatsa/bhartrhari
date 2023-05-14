@@ -43,20 +43,19 @@ with open('data/alignment/Gopinath.csv') as f:
 del versions['Kosambi']
 del versions['']
 
-pageUrlPrefixes = {}
-imageUrlPrefixes = {}
-telang = {}
+regions_per_book = {}
 with open('data/regions/telang-regions-out.json') as file:
     t = json.load(file)
     totWidth = t['totWidth']
     totHeight = t['totHeight']
-    imageUrlPrefixes['Telang'] = imageUrlPrefix = t['imageUrlPrefix'] + '_202305'
-    pageUrlPrefixes['Telang'] = pageUrlPrefix = t['pageUrlPrefix'] + '_202305'
+    imageUrlPrefix = t['imageUrlPrefix'] + '_202305'
+    pageUrlPrefix = t['pageUrlPrefix'] + '_202305'
+    regions_by_name = {}
     for (region_name, types_and_regions) in t['regions']:
-        telang[region_name] = collections.defaultdict(list)
+        regions_by_name[region_name] = collections.defaultdict(list)
         for (type, regions) in types_and_regions.items():
             for region in regions:
-                telang[region_name][type].append({
+                regions_by_name[region_name][type].append({
                     'n': region['slug'] - 1,
                     'x': int(region['xmin'] / totWidth * 100) / 100,
                     'y': int(region['ymin'] / totHeight * 1000) / 1000,
@@ -64,19 +63,24 @@ with open('data/regions/telang-regions-out.json') as file:
                     'h': (int(region['height'] / totHeight * 1000) + 5) / 1000,
                     'text': region['text'],
                 })
-kosambi = {}
+    regions_per_book['Telang'] = {
+        'regions': regions_by_name,
+        'imageUrlPrefix': imageUrlPrefix,
+        'pageUrlPrefix': pageUrlPrefix,
+    }
 with open('data/regions/kosambi-regions-out.json') as file:
     t = json.load(file)
     totWidth = t['totWidth']
     totHeight = t['totHeight']
-    imageUrlPrefixes['Kosambi'] = imageUrlPrefix = t['imageUrlPrefix']
-    pageUrlPrefixes['Kosambi'] = pageUrlPrefix = t['pageUrlPrefix']
+    imageUrlPrefix = t['imageUrlPrefix']
+    pageUrlPrefix = t['pageUrlPrefix']
+    regions_by_name = {}
     for (region_name, types_and_regions) in t['regions']:
         region_name = 'K' + region_name
-        kosambi[region_name] = collections.defaultdict(list)
+        regions_by_name[region_name] = collections.defaultdict(list)
         for (type, regions) in types_and_regions.items():
             for region in regions:
-                kosambi[region_name][type].append({
+                regions_by_name[region_name][type].append({
                     'n': region['page_id'] - 1,
                     'x': int(region['xmin'] / totWidth * 100) / 100,
                     'y': int(region['ymin'] / totHeight * 1000) / 1000,
@@ -84,15 +88,17 @@ with open('data/regions/kosambi-regions-out.json') as file:
                     'h': (int(region['height'] / totHeight * 1000) + 5) / 1000,
                     'text': region['text'],
                 })
-print(kosambi.keys())
+    print(regions_by_name.keys())
+    regions_per_book['Kosambi'] = {
+        'regions': regions_by_name,
+        'imageUrlPrefix': imageUrlPrefix,
+        'pageUrlPrefix': pageUrlPrefix,
+    }
 
 json.dump(
     {
         'versions': versions,
-        'telang': telang,
-        'kosambi': kosambi,
-        'pageUrlPrefixes': pageUrlPrefixes,
-        'imageUrlPrefixes': imageUrlPrefixes,
+        'regions_per_book': regions_per_book,
     },
     open('data.json', 'w')
 )
