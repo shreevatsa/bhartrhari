@@ -1,2 +1,2 @@
 [build]
-command = "build.sh"
+command = "./build.sh"
