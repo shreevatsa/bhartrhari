@@ -3,7 +3,7 @@
 Concepts:
 
 -   a `Book` is any translation/edition/collection that contains Bhartṛhari's poems (and possibly a few headings etc).
-    -   a `Book`'s is chopped-up into (is a sequence of) `BookPortion`s: either the text itself, or pointers to images, or names of `Region`s.
+    -   a `Book` is chopped-up into (is a sequence of) `BookPortion`s: either the text itself, or pointers to images, or names of `Region`s.
 -   a `Region` is a rectangle from a scanned book, that has been (either manually or in [post-processing](https://github.com/shreevatsa/bhartrhari/blob/622e2d1482b6d6a6893bc0f48297d6b3bad2d219/data/regions/telang/telang-regions-dump.py)) given a name: it is a `(name, n, x, y, w, h, text)` tuple, where `n` is a page number (like the archive.org "n").
     -   It can either be *unscaled*, meaning that `(x, y, w, h)` are integers (pixels), or *scaled* (for archive.org), meaning that `(x, y, w, h)` are fractions between 0 and 1.
 -   a "K-number" is the Kanonical (Kosambi) number of a Bhartṛhari poem.
