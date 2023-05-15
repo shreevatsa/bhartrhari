@@ -26,7 +26,6 @@ if (!currentUrl.endsWith('/') && !currentUrl.endsWith('.html')) {
 
 # Generate a page for each individual verse
 for (k, vs) in versions.items():
-    k = f'K{int(k):03}'
     versions_for_template = []
     kOrder = ['Ryder', 'Brough', 'Tawney', 'Mādhavānanda', 'Telang', 'Gopinath1914', 'Gopinath1896']
     for (book_name, versions_by_book) in sorted(vs.items(), key=lambda name_and_v: kOrder.index(name_and_v[0])):

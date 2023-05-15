@@ -12,7 +12,8 @@
     <div class="container">
         {% for version in versions %}
         <div class="translation">
-            <h3><a href="{{version.title}}.html#{{knum}}">{{version.title}}</a></h3>
+            <h3>{% if version.title != 'Kosambi' %}<a href="{{version.title}}.html#{{knum}}">{{version.title}}</a>{%
+                else %}{{version.title}}{% endif %}</h3>
             {% if 'lines' in version and version.lines %}
             <div class="lines">
                 {% for line in version.lines %}

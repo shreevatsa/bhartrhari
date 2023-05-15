@@ -68,38 +68,43 @@ template = env.get_template('gen/book.html')
 
 versions = collections.defaultdict(lambda: collections.defaultdict(list))
 
+def lines(version):
+    # Ignore leading and trailing blank lines
+    lines = version.splitlines()
+    while lines and lines[0].strip() == '': lines = lines[1:]
+    while lines and lines[-1].strip() == '': lines = lines[:-1]
+    if not lines: return None
+    # Expand tabs, and strip any common leading spaces
+    lines_for_template = []
+    common = 10**9
+    lines_expanded = []
+    for line in lines:
+        line = line.replace('\t', '    ')
+        lines_expanded.append(line)
+        if line.lstrip(): common = min(common, len(line) - len(line.lstrip()))
+    # Now we have all the lines we need, for passing into the template.
+    for line in lines_expanded:
+        assert line.strip() == '' or line[:common] == ' ' * common
+        line = line[common:]
+        lines_for_template.append({
+            'indented': line.startswith(' '),
+            'text': line,
+        })
+    return lines_for_template
+
 with open('data/alignment/Ryder.csv') as f:
     reader = csv.reader(f)
     verses_for_template = []
     for row in reader:
         (n, ryder, kosambi) = row
-        if kosambi == 'Kosambi': continue
+        try: kosambi = f'K{int(kosambi):03}'
+        except: pass
         versions[kosambi]['Ryder'].append(ryder)
-        version = ryder
-        # Ignore leading and trailing blank lines
-        lines = version.splitlines()
-        while lines and lines[0].strip() == '': lines = lines[1:]
-        while lines and lines[-1].strip() == '': lines = lines[:-1]
-        if not lines: continue
-        # Expand tabs, and strip any common leading spaces
-        lines_for_template = []
-        common = 10**9
-        lines_expanded = []
-        for line in lines:
-            line = line.replace('\t', '    ')
-            lines_expanded.append(line)
-            if line.lstrip(): common = min(common, len(line) - len(line.lstrip()))
-        # Now we have all the lines we need, for passing into the template.
-        for line in lines_expanded:
-            assert line.strip() == '' or line[:common] == ' ' * common
-            line = line[common:]
-            lines_for_template.append({
-                'indented': line.startswith(' '),
-                'text': line,
-            })
+        lines_for_template = lines(ryder)
+        if not lines_for_template: continue
         verses_for_template.append({
             'title': n,
-            'id': f'K{int(kosambi):03}' if kosambi != '' else None,
+            'id': kosambi,
             'lines': lines_for_template,
         })
     open('web/Ryder.html', 'w').write(template.render(
@@ -109,29 +114,95 @@ with open('data/alignment/Ryder.csv') as f:
 
 with open('data/alignment/Brough.csv') as f:
     reader = csv.reader(f)
+    verses_for_template = []
     for row in reader:
         (n, brough, kosambi) = row
+        try: kosambi = f'K{int(kosambi):03}'
+        except: pass
         versions[kosambi]['Brough'].append(brough)
+        lines_for_template = lines(brough)
+        if not lines_for_template: continue
+        verses_for_template.append({
+            'title': n,
+            'id': kosambi,
+            'lines': lines_for_template,
+        })
+    open('web/Brough.html', 'w').write(template.render(
+        bookTitle='Brough',
+        verses=verses_for_template
+    ))
 
 with open('data/alignment/Telang-Tawney.csv') as f:
     reader = csv.reader(f)
+    verses_telang = []
+    verses_tawney = []
     for row in reader:
         (telang, snippet, kosambi, tawney, tawneyvtf) = row
+        try: kosambi = f'K{int(kosambi):03}'
+        except: pass
         versions[kosambi]['Telang'].append(telang)
         versions[kosambi]['Tawney'].append(tawney)
+        lines_tawney = lines(tawney)
+        if not lines_tawney: continue
+        verses_tawney.append({
+            'title': n,
+            'id': kosambi,
+            'lines': lines_tawney,
+        })
+        verses_telang.append({
+            'title': n,
+            'id': kosambi,            
+            'regions': regions_per_book['Telang']['regions'].get(telang, {}),
+            'pageUrlPrefix': regions_per_book['Telang']['pageUrlPrefix'],
+            'imageUrlPrefix': regions_per_book['Telang']['imageUrlPrefix'],
+        })
+    open('web/Telang.html', 'w').write(template.render(
+        bookTitle='Telang',
+        verses=verses_telang
+    ))
+    open('web/Tawney.html', 'w').write(template.render(
+        bookTitle='Tawney',
+        verses=verses_tawney
+    ))
 
 with open('data/alignment/Madhavananda.csv') as f:
     reader = csv.reader(f)
+    verses_for_template = []
     for row in reader:
         (_, madhavananda, kosambi) = row
+        try: kosambi = f'K{int(kosambi):03}'
+        except: pass
         versions[kosambi]['Mādhavānanda'].append(madhavananda)
+        lines_for_template = lines(madhavananda)
+        if not lines_for_template: continue
+        verses_for_template.append({
+            'title': n,
+            'id': kosambi,
+            'lines': lines_for_template,
+        })
+    open('web/Mādhavānanda.html', 'w').write(template.render(
+        bookTitle='Mādhavānanda',
+        verses=verses_for_template
+    ))
+
 
 with open('data/alignment/Gopinath.csv') as f:
     reader = csv.reader(f)
+    verses_for_template = []
     for row in reader:
         (comment, gopinath_num, gopinath1896_img, gopinath1914_img, kosambi) = row
+        try: kosambi = f'K{int(kosambi):03}'
+        except: pass
         versions[kosambi]['Gopinath1896'].append(gopinath1896_img)
         versions[kosambi]['Gopinath1914'].append(gopinath1914_img)
+        verses_for_template.append({
+            'title': 'Gopinath1914',
+            'image_urls': ['../data/images/' + gopinath1914_img],
+        })
+    open('web/Gopinath1914.html', 'w').write(template.render(
+        bookTitle='Gopinath1914',
+        verses=verses_for_template
+    ))
 # The header row and certain other rows have unusual values for the "Kosambi" column.
 del versions['Kosambi']
 del versions['']
