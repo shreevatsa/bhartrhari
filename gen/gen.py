@@ -24,6 +24,7 @@ if (!currentUrl.endsWith('/') && !currentUrl.endsWith('.html')) {
 </script>
 ''')
 
+# Generate a page for each individual verse
 for (k, vs) in versions.items():
     k = f'K{int(k):03}'
     versions_for_template = []
@@ -33,7 +34,7 @@ for (k, vs) in versions.items():
             if book_name == 'Telang':
                 region_name = version.strip()
                 versions_for_template.append({
-                    'title': f'{book_name} ({region_name})',
+                    'title': f'{book_name}',
                     'regions': telang[region_name],
                     'pageUrlPrefix': regions_per_book[book_name]['pageUrlPrefix'],
                     'imageUrlPrefix': regions_per_book[book_name]['imageUrlPrefix'],
@@ -83,7 +84,7 @@ for (k, vs) in versions.items():
     # Render the template with data
     template = env.get_template('gen/template.html')
     output = template.render(
-        knum = f'K{k}',
+        knum = k,
         versions = versions_for_template,
     )
     open(f'web/{k}.html', 'w').write(output)

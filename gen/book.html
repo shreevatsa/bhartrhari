@@ -4,15 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bhartṛhari {{knum}}</title>
+    <title>{{bookTitle}}</title>
     <link rel="stylesheet" type="text/css" href="common.css">
+    <style>
+        .translation {
+            display: flex;
+            justify-content: space-between;
+        }
+
+    </style>
 </head>
 
 <body>
     <div class="container">
-        {% for version in versions %}
-        <div class="translation">
-            <h3><a href="{{version.title}}.html#{{knum}}">{{version.title}}</a></h3>
+        {% for version in verses %}
+        <div class="translation" id="{{version.id}}">
             {% if 'lines' in version and version.lines %}
             <div class="lines">
                 {% for line in version.lines %}
@@ -43,6 +49,7 @@
             </div>
             {% endfor %}
             {% endif %}
+            <span>&emsp;(<a href="{{version.id}}.html">more</a>)</span>
         </div>
         {% endfor %}
     </div>

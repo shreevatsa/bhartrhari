@@ -54,26 +54,67 @@ with open('data/regions/kosambi-regions-out.json') as file:
         'pageUrlPrefix': pageUrlPrefix,
     }
 
-# Read the CSV files (v -> K) and map them back (K -> [v])
+# Read the CSV files (v -> K) and do two things:
+# 1. generate the HTML pages for each version,
+# 2. map them back (K -> [v])
+from jinja2 import Environment, FileSystemLoader, select_autoescape, StrictUndefined
+# Create a custom Jinja2 environment
+env = Environment(
+    loader=FileSystemLoader('./'),
+    autoescape=select_autoescape(['html', 'xml']),
+    undefined=StrictUndefined
+)
+template = env.get_template('gen/book.html')
+
 versions = collections.defaultdict(lambda: collections.defaultdict(list))
 
 with open('data/alignment/Ryder.csv') as f:
     reader = csv.reader(f)
-    # n,Ryder,Kosambi
+    verses_for_template = []
     for row in reader:
         (n, ryder, kosambi) = row
+        if kosambi == 'Kosambi': continue
         versions[kosambi]['Ryder'].append(ryder)
+        version = ryder
+        # Ignore leading and trailing blank lines
+        lines = version.splitlines()
+        while lines and lines[0].strip() == '': lines = lines[1:]
+        while lines and lines[-1].strip() == '': lines = lines[:-1]
+        if not lines: continue
+        # Expand tabs, and strip any common leading spaces
+        lines_for_template = []
+        common = 10**9
+        lines_expanded = []
+        for line in lines:
+            line = line.replace('\t', '    ')
+            lines_expanded.append(line)
+            if line.lstrip(): common = min(common, len(line) - len(line.lstrip()))
+        # Now we have all the lines we need, for passing into the template.
+        for line in lines_expanded:
+            assert line.strip() == '' or line[:common] == ' ' * common
+            line = line[common:]
+            lines_for_template.append({
+                'indented': line.startswith(' '),
+                'text': line,
+            })
+        verses_for_template.append({
+            'title': n,
+            'id': f'K{int(kosambi):03}' if kosambi != '' else None,
+            'lines': lines_for_template,
+        })
+    open('web/Ryder.html', 'w').write(template.render(
+        bookTitle='Ryder',
+        verses=verses_for_template
+    ))
 
 with open('data/alignment/Brough.csv') as f:
     reader = csv.reader(f)
-    # n,Brough,Kosambi
     for row in reader:
         (n, brough, kosambi) = row
         versions[kosambi]['Brough'].append(brough)
 
 with open('data/alignment/Telang-Tawney.csv') as f:
     reader = csv.reader(f)
-    # Telang,,Kosambi,Tawney,Tawney verse translation?
     for row in reader:
         (telang, snippet, kosambi, tawney, tawneyvtf) = row
         versions[kosambi]['Telang'].append(telang)
@@ -81,18 +122,17 @@ with open('data/alignment/Telang-Tawney.csv') as f:
 
 with open('data/alignment/Madhavananda.csv') as f:
     reader = csv.reader(f)
-    # ,Mādhavānanda,Kosambi
     for row in reader:
         (_, madhavananda, kosambi) = row
         versions[kosambi]['Mādhavānanda'].append(madhavananda)
 
 with open('data/alignment/Gopinath.csv') as f:
     reader = csv.reader(f)
-    # Comment,Gopinath-num,Gopinath1896-img,Gopinath1914-img,Kosambi
     for row in reader:
         (comment, gopinath_num, gopinath1896_img, gopinath1914_img, kosambi) = row
         versions[kosambi]['Gopinath1896'].append(gopinath1896_img)
         versions[kosambi]['Gopinath1914'].append(gopinath1914_img)
+# The header row and certain other rows have unusual values for the "Kosambi" column.
 del versions['Kosambi']
 del versions['']
 
