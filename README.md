@@ -5,9 +5,9 @@ Concepts: `Book`, `Morsel`, `Region`, K-number.
 -   a **`Book`** is any translation/edition/collection that contains Bhartṛhari's poems.
 -   a `Book` is chopped-up into (is a sequence of) **`Morsel`s**
     -   a `Morsel` is usually a certain book's version of a Bhartṛhari poem, but sometimes it could be a heading.
-    -   a `Morsel` is stored as either the text itself, or pointers to images, or names of `Region`s, and is rendered accordingly.
--   a **`Region`** is a rectangle from a scanned book, that has been (either manually or in [post-processing](https://github.com/shreevatsa/bhartrhari/blob/622e2d1482b6d6a6893bc0f48297d6b3bad2d219/data/regions/telang/telang-regions-dump.py)) given a name: it is a `(name, n, x, y, w, h, text)` tuple, where `n` is a page number (like the archive.org "n").
-    -   It can either be *unscaled*, meaning that `(x, y, w, h)` are integers (pixels), or *scaled* (for archive.org), meaning that `(x, y, w, h)` are fractions between 0 and 1.
+    -   a `Morsel` is stored as either the text itself (a sequence of `Lines`), or a sequence of `Region`s, and is rendered accordingly.
+-   a **`Region`** is a rectangle from a scanned book, that has been (either manually or in [post-processing](https://github.com/shreevatsa/bhartrhari/blob/622e2d1482b6d6a6893bc0f48297d6b3bad2d219/data/regions/telang/telang-regions-dump.py)) given a name so that it can be referred to. It is a `(name, imageUrl, pageUrl, text)` tuple.
+    -   It often starts life as an `UnscaledRegion` which is a `(n, x, y, w, h)` tuple, where `n` is a page number (like the archive.org "n"), and `(x, y, w, h)` are integers (pixels). These are scaled (for archive.org), so that `(x, y, w, h)` become fractions between 0 and 1.
 -   a **"K-number"** is the Kanonical (Kosambi) number of a Bhartṛhari poem.
 
 External data sources:
@@ -19,16 +19,16 @@ External data sources:
 
 Internal data tables (in SQLite?)
 
--   The table `Book`, where each row is `(BookId, Title, ImageUrlPrefix?, PageUrlPrefix?)`, with the last two needed only if the book is made of `Region`s.
--   The table `Morsel`, where each row is `(MorselId, BookId, NumInBook, Knum?, Lines|Images|Regions)` (need to think about this further)
--   The table `ScaledRegion` where each row is `(RegionId, BookId, n, x, y, w, h, text)`.
+-   The table `Book`, where each row is `(BookId, Title)`.
+-   The table `Morsel`, where each row is `(MorselId, BookId, NumInBook, Knum?, Lines|Regions)` (need to think about this further)
+-   The table `Region` where each row is `(RegionId, BookId, name, imageUrl, pageUrl, text)`.
 
 Processing:
 
--   Read the (unscaled) regions from the external data, and convert them to `ScaledRegion`s.
+-   Read the (unscaled) regions from the external data, and convert them to `Region`s.
 -   Read the CSV files, and assemble the `Morsel`s for each `Book` (add to the `Morsel` table, and one entry to the `Book` table).
 
 Output:
 
--   Generate the HTML page for each invididual `Book` (using the `Morsel`s for that book).
--   Generate the HTML page for each individual `Knum` (using that `Morsel`s with that `Knum`).
+-   Generate the HTML page for each invididual `Book` (using the `Morsel`s for that book: `SELECT * FROM Morsel WHERE BookId=? ORDER BY NumInBook`).
+-   Generate the HTML page for each individual `Knum` (using that `Morsel`s with that `Knum`: `SELECT * FROM Morsel WHERE Knum=? ORDER BY BookId, NumInBook`).
