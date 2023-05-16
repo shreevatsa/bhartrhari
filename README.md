@@ -2,6 +2,8 @@
 
 Concepts: `Book`, `Morsel`, `Region`, K-number.
 
+TODO: Think also about `Line`s and `RegionType`s. Example: The Telang book may have the same śloka two times, with regions for verse, footnote, endnote that are each multiple rectangles (split across pages).
+
 -   a **`Book`** is any translation/edition/collection that contains Bhartṛhari's poems.
 -   a `Book` is chopped-up into (is a sequence of) **`Morsel`s**
     -   a `Morsel` is usually a certain book's version of a Bhartṛhari poem, but sometimes it could be a heading.
@@ -17,7 +19,7 @@ External data sources:
 -   [This spreadsheet in Google Sheets](https://docs.google.com/spreadsheets/d/1W83uaK27fOtKRcHC2oxrdipbSyC174XtshCTalq6vrM/edit#gid=1457999221) has, for each `Book`, its (chopped-up) `Morsel`s in order, with each mapped to (where applicable) the K-number.
     -   These are exported as CSV files in the [`data/alignment`](https://github.com/shreevatsa/bhartrhari/tree/622e2d1482b6d6a6893bc0f48297d6b3bad2d219/data/alignment) directory.
 
-Internal data tables (in SQLite?)
+Internal data tables to be populated (in SQLite?):
 
 -   The table `Book`, where each row is `(BookId, Title)`.
 -   The table `Morsel`, where each row is `(MorselId, BookId, NumInBook, Knum?, Lines|Regions)` (need to think about this further)
@@ -31,4 +33,4 @@ Processing:
 Output:
 
 -   Generate the HTML page for each invididual `Book` (using the `Morsel`s for that book: `SELECT * FROM Morsel WHERE BookId=? ORDER BY NumInBook`).
--   Generate the HTML page for each individual `Knum` (using that `Morsel`s with that `Knum`: `SELECT * FROM Morsel WHERE Knum=? ORDER BY BookId, NumInBook`).
+-   Generate the HTML page for each individual `Knum` (using that `Morsel`s with that `Knum`: `SELECT BookId, * FROM Morsel WHERE Knum=? GROUP BY BookId ORDER BY BookId, NumInBook`).
