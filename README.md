@@ -1,13 +1,14 @@
 # Data
 
-Concepts: `Book`, `Morsel`, `Region`, K-number.
+Concepts: `Book`, `Morsel`, `Line`, `Region`, K-number.
 
-TODO: Think also about `Line`s and `RegionType`s. Example: The Telang book may have the same śloka two times, with regions for verse, footnote, endnote that are each multiple rectangles (split across pages).
+TODO: Think also about `RegionType`s. Example: The Telang book may have the same śloka two times, with regions for verse, footnote, endnote that are each multiple rectangles (split across pages).
 
 -   a **`Book`** is any translation/edition/collection that contains Bhartṛhari's poems.
 -   a `Book` is chopped-up into (is a sequence of) **`Morsel`s**
     -   a `Morsel` is usually a certain book's version of a Bhartṛhari poem, but sometimes it could be a heading.
     -   a `Morsel` is stored as either the text itself (a sequence of `Lines`), or a sequence of `Region`s, and is rendered accordingly.
+-   a **`Line`** is just a line of text (a sequence of characters, for now), along with an `Indentation` value (usually 0, sometimes 1, rarely 2 or more).
 -   a **`Region`** is a rectangle from a scanned book, that has been (either manually or in [post-processing](https://github.com/shreevatsa/bhartrhari/blob/622e2d1482b6d6a6893bc0f48297d6b3bad2d219/data/regions/telang/telang-regions-dump.py)) given a name so that it can be referred to. It is a `(name, imageUrl, pageUrl, text)` tuple.
     -   It often starts life as an `UnscaledRegion` which is a `(n, x, y, w, h)` tuple, where `n` is a page number (like the archive.org "n"), and `(x, y, w, h)` are integers (pixels). These are scaled (for archive.org), so that `(x, y, w, h)` become fractions between 0 and 1.
 -   a **"K-number"** is the Kanonical (Kosambi) number of a Bhartṛhari poem.
@@ -21,9 +22,12 @@ External data sources:
 
 Internal data tables to be populated (in SQLite?):
 
--   The table `Book`, where each row is `(BookId, Title)`.
--   The table `Morsel`, where each row is `(MorselId, BookId, NumInBook, Knum?, Lines|Regions)` (need to think about this further)
--   The table `Region` where each row is `(RegionId, BookId, name, imageUrl, pageUrl, text)`.
+-   The table `Book`, where each row is `(BookId,   Title)`.
+-   The table `Morsel`, where each row is `(BookId, NumInBook, MorselId,   Knum?)`
+-   The table `Line`, where each row is `(BookId, MorselId, LineId,   Text, Indentation)`
+-   The table `Region` where each row is `(BookId, MorselId, RegionId,   Name, RegionType, ImageUrl, PageUrl, Text)`.
+
+TODO: Think about ordering here. If we read the CSV files first, we need to store the Morsel -> Region mapping in memory, for use while populating Regions (or generate Regions with the Regions blank, and fill them in later… which is OK, I guess). If we read Regions first, we need to leave MorselId unpopulated until we read the CSV files, which doesn't seem a good idea.
 
 Processing:
 
