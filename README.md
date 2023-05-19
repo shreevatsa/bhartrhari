@@ -2,8 +2,6 @@
 
 Concepts: `Book`, `Morsel`, `Line`, `Region`, K-number.
 
-TODO: Think also about `RegionType`s. Example: The Telang book may have the same śloka two times, with regions for verse, footnote, endnote that are each multiple rectangles (split across pages).
-
 -   a **`Book`** is any translation/edition/collection that contains Bhartṛhari's poems.
 -   a `Book` is chopped-up into (is a sequence of) **`Morsel`s**
     -   a `Morsel` is usually a certain book's version of a Bhartṛhari poem, but sometimes it could be a heading.
@@ -27,17 +25,15 @@ Internal data tables to be populated (in SQLite?):
 -   The table `Line`, where each row is `(BookId, MorselId, LineId,   Text, Indentation)`
 -   The table `Region` where each row is `(BookId, MorselId, RegionId,   RegionType, Name, ImageUrl, PageUrl, Text)`.
 
-
-
 Processing:
 
--   Read the (unscaled) regions from the external data, and convert them to `Region`s.
 -   Read the CSV files, and assemble the `Morsel`s for each `Book` (add to the `Morsel` table, and one entry to the `Book` table).
+-   Read the (unscaled) regions from the external data, and convert them to `Region`s.
 
-
-Note: We need to read the CSV files first (list of `Morsel`s) and store the RegionName -> Morsel mapping in memory, for use while populating Regions (either that, or generate Regions with the Regions blank, and fill them in later… which is OK too, I guess). If we read Regions first, we would have to leave MorselId unpopulated until we read the CSV files, which doesn't seem a good idea.
+Note: We need to read the CSV files first (list of `Morsel`s) and store the RegionName -> Morsel mapping in memory ~~(or in the `Region` table with only `Name` populated: but note we don't know how many regions we'll need)~~, for use while populating Regions. If we read Regions first, we would have to leave MorselId unpopulated until we read the CSV files, which doesn't seem a good idea.
 
 Output:
 
+-   To generate the HTML rendering of a `Morsel`, gather all its `Line`s, if any, or otherwise all the `Region`s, grouped by `RegionType` and in order. Render this. 
 -   Generate the HTML page for each invididual `Book` (using the `Morsel`s for that book: `SELECT * FROM Morsel WHERE BookId=? ORDER BY NumInBook`).
 -   Generate the HTML page for each individual `Knum` (using that `Morsel`s with that `Knum`: `SELECT BookId, * FROM Morsel WHERE Knum=? GROUP BY BookId ORDER BY BookId, NumInBook`).
