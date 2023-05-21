@@ -27,7 +27,11 @@ Internal data tables to be populated (in SQLite?):
 
 Processing:
 
--   Read the CSV files, and assemble the `Morsel`s for each `Book` (add to the `Morsel` table, and one entry to the `Book` table).
+-   Read the CSV files, and, for each file:
+    -   add one entry to the `Book` table,
+    -   assemble the `Morsel`s for that book, and for each `Morsel`:
+        -   add to the `Morsel` table,
+        -   assemble the `Line`s, or else add to a temporary (in-memory) RegionName -> Morsel mapping.
 -   Read the (unscaled) regions from the external data, and convert them to `Region`s.
 
 Note: We need to read the CSV files first (list of `Morsel`s) and store the RegionName -> Morsel mapping in memory ~~(or in the `Region` table with only `Name` populated: but note we don't know how many regions we'll need)~~, for use while populating Regions. If we read Regions first, we would have to leave MorselId unpopulated until we read the CSV files, which doesn't seem a good idea.
@@ -37,3 +41,4 @@ Output:
 -   To generate the HTML rendering of a `Morsel`, gather all its `Line`s, if any, or otherwise all the `Region`s, grouped by `RegionType` and in order. Render this. 
 -   Generate the HTML page for each invididual `Book` (using the `Morsel`s for that book: `SELECT * FROM Morsel WHERE BookId=? ORDER BY NumInBook`).
 -   Generate the HTML page for each individual `Knum` (using that `Morsel`s with that `Knum`: `SELECT BookId, * FROM Morsel WHERE Knum=? GROUP BY BookId ORDER BY BookId, NumInBook`).
+   
