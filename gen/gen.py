@@ -36,8 +36,10 @@ env.filters['debug'] = debug
 knums = [knum
          for (knum, count) in collections.Counter(Knum for (BookId, NumInBook, Knum) in Morsel).most_common()
          if knum]
+# SELECT Title FROM Book;
 open('web/index.html', 'w').write(env.get_template('gen/index.html').render(
-    knums = knums
+    knums = knums,
+    books = Book
 ))
 
 print('Start')
@@ -77,7 +79,8 @@ for i, title in enumerate(Book):
 
 # A page for each Knum.
 for knum in knums:
-    # SELECT * FROM Morsel WHERE Knum=?
+    # SELECT MorselId FROM Morsel WHERE Knum=?
+    # TODO: ORDER BY BookId
     morsel_ids = [MorselId for (MorselId, (BookId,   NumInBook, Knum)) in enumerate(Morsel) if Knum==knum]
     morsels_for_knum = [morsels_for_id[morsel_id] for morsel_id in morsel_ids]
     open(f'web/{knum}.html', 'w').write(env.get_template('gen/template.html').render(

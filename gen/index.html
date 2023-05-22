@@ -14,6 +14,13 @@
 </head>
 
 <body>
+    <p>I suggest starting with one of the books below:</p>
+    <ul>
+        {% for title in books %}
+        <li><a href="{{title}}.html">{{title}}</a></li>
+        {% endfor %}
+    </ul>
+    <p>but you could also enter via the complete list:</p>
     <ul>
         {% for k in knums %}
         <li><a href="{{k}}.html">{{k}}</a></li>

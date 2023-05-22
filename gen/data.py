@@ -113,11 +113,13 @@ with open('data/alignment/Telang-Tawney.csv') as f:
             Knum = kosambi
         except:
             Knum = None
-        MorselId1 = len(Morsel); Morsel.append((BookId1, NumInBook, Knum))
-        MorselId2 = len(Morsel); Morsel.append((BookId2, NumInBook, Knum))
-        for (Text, Indentation) in Lines(tawney):
-            Line.append((BookId, MorselId1,   Text, Indentation))
-        morsel_for_regionname[telang] = MorselId2
+        if tawney:
+            MorselId1 = len(Morsel); Morsel.append((BookId1, NumInBook, Knum))
+            for (Text, Indentation) in Lines(tawney):
+                Line.append((BookId, MorselId1,   Text, Indentation))
+        if telang:
+            MorselId2 = len(Morsel); Morsel.append((BookId2, NumInBook, Knum))
+            morsel_for_regionname[telang] = MorselId2
 
 BookId = BookId2
 with open('data/regions/telang-regions-out.json') as file:

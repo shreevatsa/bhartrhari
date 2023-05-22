@@ -12,7 +12,7 @@
         {% elif 'regions' in morsel and morsel.regions %}
         {% for (region_type, regions) in morsel.regions.items()|nonempty %}
         <div class="outer-s">
-            <h4>{{region_type}}</h4>
+            <h4>{% if region_type != "All"%}{{region_type}}{% endif %}</h4>
             {% for (Name, ImageUrl, PageUrl, Text) in regions %}
             <a href="{{PageUrl}}"><img src="{{ImageUrl}}" class="inner-img"></a>
             {% endfor %}
@@ -29,8 +29,8 @@
         {% else %}
         {{morsel|debug}}
         {% endif %}
+        {% if linkBook == False and morsel.Knum %}
+        <div style="padding-top: 1ex;"><a href="{{morsel.Knum}}.html">⭤</a></div>
+        {% endif %}
     </div>
-    {% if linkBook == False and morsel.Knum %}
-    <span>&emsp;(<a href="{{morsel.Knum}}.html">more</a>)</span>
-    {% endif %}
 </div>
