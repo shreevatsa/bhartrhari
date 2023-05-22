@@ -1,6 +1,7 @@
 import collections
 import csv
 import json
+import sqlite3
 from typing import List
 
 def Lines(text: str):
@@ -26,13 +27,27 @@ def Lines(text: str):
                     indent_lengths.index(len(line) - len(line.lstrip())) if line.strip() else 0))
     return ret
 
+def db(con, sql, *args):
+    with con:
+        cursor = con.execute(sql, *args)
+    return cursor.lastrowid
 
-Book = []    # Book:   (BookId,   Title)
-Morsel = []  # Morsel: (BookId, MorselId,   NumInBook, Knum?)
-Line = []    # Line:   (BookId, MorselId, LineId,   Text, Indentation)
-Region = []  # Region: (BookId, MorselId, RegionId,   RegionType, Name, ImageUrl, PageUrl, Text)
+# Book:   (BookId,   Title)
+# Morsel: (BookId, MorselId,   NumInBook, Knum?)
+# Line:   (BookId, MorselId, LineId,   Text, Indentation)
+# Region: (BookId, MorselId, RegionId,   RegionType, Name, ImageUrl, PageUrl, Text)
+con = sqlite3.connect("data.db")
+db(con, "CREATE TABLE Book(BookId INTEGER PRIMARY KEY, Title)")
+db(con, "CREATE TABLE Morsel(BookId, MorselId INTEGER PRIMARY KEY,   NumInBook, Knum)")
+db(con, "CREATE TABLE Line(BookId, MorselId, LineId INTEGER PRIMARY KEY,   Text, Indentation)")
+db(con, "CREATE TABLE Region(BookId, MorselId, RegionId INTEGER PRIMARY KEY,   RegionType, Name, ImageUrl, PageUrl, Text)")
 
-BookId = len(Book); Book.append('Ryder')
+Morsel = []
+Line = []
+Region = []
+
+BookId = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Ryder'])
+print('BookId', BookId)
 with open('data/alignment/Ryder.csv') as f:
     NumInBook = 0
     for row in csv.reader(f):
@@ -47,7 +62,7 @@ with open('data/alignment/Ryder.csv') as f:
         for (Text, Indentation) in Lines(text):
             Line.append((BookId, MorselId,   Text, Indentation))
 
-BookId = len(Book); Book.append('Brough')
+BookId = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Brough'])
 with open('data/alignment/Brough.csv') as f:
     NumInBook = 0
     for row in csv.reader(f):
@@ -62,7 +77,7 @@ with open('data/alignment/Brough.csv') as f:
         for (Text, Indentation) in Lines(text):
             Line.append((BookId, MorselId,   Text, Indentation))
 
-BookId = len(Book); Book.append('Mādhavānanda')
+BookId = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Mādhavānanda'])
 with open('data/alignment/Madhavananda.csv') as f:
     NumInBook = 0
     for row in csv.reader(f):
@@ -77,8 +92,8 @@ with open('data/alignment/Madhavananda.csv') as f:
         for (Text, Indentation) in Lines(text):
             Line.append((BookId, MorselId,   Text, Indentation))
 
-BookId1 = len(Book); Book.append('Gopinath1914');
-BookId2 = len(Book); Book.append('Gopinath1896')
+BookId1 = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Gopinath1914'])
+BookId2 = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Gopinath1896'])
 imagesPrefix = '../data/images/'
 with open('data/alignment/Gopinath.csv') as f:
     NumInBook = 0
@@ -100,8 +115,8 @@ with open('data/alignment/Gopinath.csv') as f:
         Region.append((BookId1, MorselId1,   'All', '', imagesPrefix + gopinath1914_img, imagesPrefix + gopinath1914_img, ''))
         Region.append((BookId2, MorselId2,   'All', '', imagesPrefix + gopinath1896_img, imagesPrefix + gopinath1896_img, ''))
 
-BookId1 = len(Book); Book.append('Tawney')
-BookId2 = len(Book); Book.append('Telang')
+BookId1 = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Tawney'])
+BookId2 = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Telang'])
 morsel_for_regionname = {}
 with open('data/alignment/Telang-Tawney.csv') as f:
     NumInBook = 0
@@ -147,7 +162,7 @@ with open('data/regions/telang-regions-out.json') as file:
                 Region.append((BookId, MorselId,   type, region_name, ImageUrl, PageUrl, region['text']))
 morsel_for_regionname = {}
 
-BookId = len(Book); Book.append('Kosambi')
+BookId = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Kosambi'])
 with open('data/regions/kosambi-regions-out.json') as file:
     t = json.load(file)
     totWidth = t['totWidth']
@@ -158,10 +173,10 @@ with open('data/regions/kosambi-regions-out.json') as file:
     for (region_name, types_and_regions) in t['regions']:
         NumInBook += 1
         Knum = 'K' + region_name
+        # Morsel: (BookId, MorselId,   NumInBook, Knum?)
+        MorselId = len(Morsel); Morsel.append((BookId,   NumInBook, Knum))
         for (type, regions) in types_and_regions.items():
             for region in regions:
-                # Morsel: (BookId, MorselId,   NumInBook, Knum?)
-                MorselId = len(Morsel); Morsel.append((BookId,   NumInBook, Knum))
                 n = region['page_id'] - 1
                 x = int(region['xmin'] / totWidth * 100) / 100
                 y = int(region['ymin'] / totHeight * 1000) / 1000
@@ -172,8 +187,13 @@ with open('data/regions/kosambi-regions-out.json') as file:
                 # Region: (BookId, MorselId, RegionId,   RegionType, Name, ImageUrl, PageUrl, Text)
                 Region.append((BookId, MorselId,   type, region_name, ImageUrl, PageUrl, region['text']))
 
+print(con.execute('SELECT * from Book'))
+Book = [row[0] for row in con.execute('SELECT Title from Book').fetchall()]
+print(Book)
 json.dump(
     [Book, Morsel, Line, Region],
     open('data.json', 'w'),
     indent=2
     )
+
+con.close()

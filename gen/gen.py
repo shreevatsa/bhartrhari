@@ -45,7 +45,7 @@ open('web/index.html', 'w').write(env.get_template('gen/index.html').render(
 print('Start')
 morsels_for_id = {}
 for morsel_id, (BookId,   NumInBook, Knum) in enumerate(Morsel):
-    BookTitle = Book[BookId]
+    BookTitle = Book[BookId - 1]
     # The Lines or Regions for this morsel_id
     lines = []
     regions = collections.defaultdict(list)
@@ -69,8 +69,9 @@ print('End')
 
 # A page for each book.
 for i, title in enumerate(Book):
+    print(f'Making page for {title}')
     # SELECT * FROM Morsel WHERE BookId=? ORDER BY NumInBook
-    morsel_ids = [MorselId for (MorselId, (BookId,   NumInBook, Knum)) in enumerate(Morsel) if BookId==i]
+    morsel_ids = [MorselId for (MorselId, (BookId,   NumInBook, Knum)) in enumerate(Morsel) if BookId==i+1]
     morsels_for_book = [morsels_for_id[morsel_id] for morsel_id in morsel_ids]
     open(f'web/{title}.html', 'w').write(env.get_template('gen/book.html').render(
         bookTitle = title,
