@@ -26,8 +26,7 @@ def Lines(text: str):
     return ret
 
 def db(con, sql, *args):
-    with con:
-        cursor = con.execute(sql, *args)
+    cursor = con.execute(sql, *args)
     return cursor.lastrowid
 
 # Book:   (BookId,   Title)
@@ -197,4 +196,5 @@ con.execute('CREATE INDEX i1 ON Line(MorselId)')
 con.execute('CREATE INDEX i2 ON Region(MorselId)')
 con.execute('CREATE INDEX i3 ON Morsel(BookId)')
 con.execute('CREATE INDEX i4 ON Morsel(Knum)')
+con.commit()
 con.close()

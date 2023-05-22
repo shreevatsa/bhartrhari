@@ -25,7 +25,7 @@ env.filters['nonempty'] = nonempty
 # -   a page for each book
 # -   a page for each Knum
 
-con = sqlite3.connect("data.db")
+con = sqlite3.connect("file:data.db?mode=ro", uri=True)
 
 # Index
 # SELECT DISTINCT knum FROM Morsel; -- ORDER BY number of Morsel desc.
