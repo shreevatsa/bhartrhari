@@ -3,7 +3,7 @@ import collections
 import sqlite3
 
 # Book:   (BookId,   Title)
-# Morsel: (BookId, MorselId,   NumInBook, Knum?)
+# Morsel: (BookId, MorselId,   Knum?)
 # Line:   (BookId, MorselId, LineId,   Text, Indentation)
 # Region: (BookId, MorselId, RegionId,   RegionType, Name, ImageUrl, PageUrl, Text)
 
@@ -44,7 +44,7 @@ def db1(con, sql, *args):
 
 print('Collecting lines and regions for each MorselId')
 morsels_for_id = {}
-for (BookId, MorselId,  NumInBook, Knum) in con.execute('SELECT * FROM Morsel'):
+for (BookId, MorselId,  Knum) in con.execute('SELECT * FROM Morsel'):
     BookTitle = db1(con, 'SELECT Title from Book WHERE BookId = ?', [BookId])
     # The Lines or Regions for this morsel_id
     lines = []
@@ -66,7 +66,7 @@ print('End')
 # A page for each book.
 for (BookId, Title) in con.execute('SELECT * FROM Book'):
     print(f'Making page for {Title}')
-    # SELECT * FROM Morsel WHERE BookId=? ORDER BY NumInBook
+    # SELECT * FROM Morsel WHERE BookId=?
     morsel_ids = con.execute('SELECT MorselId FROM Morsel WHERE BookId = ?', [BookId])
     morsels_for_book = [morsels_for_id[morsel_id] for (morsel_id,) in morsel_ids]
     open(f'web/{Title}.html', 'w').write(env.get_template('gen/book.html').render(

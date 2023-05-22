@@ -30,57 +30,51 @@ def db(con, sql, *args):
     return cursor.lastrowid
 
 # Book:   (BookId,   Title)
-# Morsel: (BookId, MorselId,   NumInBook, Knum?)
+# Morsel: (BookId, MorselId,   Knum?)
 # Line:   (BookId, MorselId, LineId,   Text, Indentation)
 # Region: (BookId, MorselId, RegionId,   RegionType, Name, ImageUrl, PageUrl, Text)
 con = sqlite3.connect("data.db")
 db(con, "CREATE TABLE Book(BookId INTEGER PRIMARY KEY, Title)")
-db(con, "CREATE TABLE Morsel(BookId, MorselId INTEGER PRIMARY KEY,   NumInBook, Knum)")
+db(con, "CREATE TABLE Morsel(BookId, MorselId INTEGER PRIMARY KEY,   Knum)")
 db(con, "CREATE TABLE Line(BookId, MorselId, LineId INTEGER PRIMARY KEY,   Text, Indentation)")
 db(con, "CREATE TABLE Region(BookId, MorselId, RegionId INTEGER PRIMARY KEY,   RegionType, Name, ImageUrl, PageUrl, Text)")
 
 BookId = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Ryder'])
 with open('data/alignment/Ryder.csv') as f:
-    NumInBook = 0
     for row in csv.reader(f):
-        NumInBook += 1
         (n, text, kosambi) = row
         try:
             kosambi = f'K{int(kosambi):03}'
             Knum = kosambi
         except:
             Knum = None
-        MorselId = db(con, "INSERT INTO Morsel(BookId, NumInBook, Knum) VALUES(?, ?, ?)", (BookId, NumInBook, Knum))
+        MorselId = db(con, "INSERT INTO Morsel(BookId, Knum) VALUES(?, ?)", (BookId, Knum))
         for (Text, Indentation) in Lines(text):
             db(con, "INSERT INTO Line(BookId, MorselId,   Text, Indentation) VALUES(?, ?, ?, ?)", (BookId, MorselId,   Text, Indentation))
 
 BookId = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Brough'])
 with open('data/alignment/Brough.csv') as f:
-    NumInBook = 0
     for row in csv.reader(f):
-        NumInBook += 1
         (n, text, kosambi) = row
         try:
             kosambi = f'K{int(kosambi):03}'
             Knum = kosambi
         except:
             Knum = None
-        MorselId = db(con, "INSERT INTO Morsel(BookId, NumInBook, Knum) VALUES(?, ?, ?)", (BookId, NumInBook, Knum))
+        MorselId = db(con, "INSERT INTO Morsel(BookId, Knum) VALUES(?, ?)", (BookId, Knum))
         for (Text, Indentation) in Lines(text):
             db(con, "INSERT INTO Line(BookId, MorselId,   Text, Indentation) VALUES(?, ?, ?, ?)", (BookId, MorselId,   Text, Indentation))
 
 BookId = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Mādhavānanda'])
 with open('data/alignment/Madhavananda.csv') as f:
-    NumInBook = 0
     for row in csv.reader(f):
-        NumInBook += 1
         (_, text, kosambi) = row
         try:
             kosambi = f'K{int(kosambi):03}'
             Knum = kosambi
         except:
             Knum = None
-        MorselId = db(con, "INSERT INTO Morsel(BookId, NumInBook, Knum) VALUES(?, ?, ?)", (BookId, NumInBook, Knum))
+        MorselId = db(con, "INSERT INTO Morsel(BookId, Knum) VALUES(?, ?)", (BookId, Knum))
         for (Text, Indentation) in Lines(text):
             db(con, "INSERT INTO Line(BookId, MorselId,   Text, Indentation) VALUES(?, ?, ?, ?)", (BookId, MorselId,   Text, Indentation))
 
@@ -88,9 +82,7 @@ BookId1 = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Gopinath1914'])
 BookId2 = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Gopinath1896'])
 imagesPrefix = '../data/images/'
 with open('data/alignment/Gopinath.csv') as f:
-    NumInBook = 0
     for row in csv.reader(f):
-        NumInBook += 1
         (comment, gopinath_num, gopinath1896_img, gopinath1914_img, kosambi) = row
         try:
             kosambi = f'K{int(kosambi):03}'
@@ -101,8 +93,8 @@ with open('data/alignment/Gopinath.csv') as f:
             MorselId1 = con.execute('SELECT MAX(MorselId) FROM Morsel WHERE BookId = ?', [BookId1]).fetchall()[0][0]
             MorselId2 = con.execute('SELECT MAX(MorselId) FROM Morsel WHERE BookId = ?', [BookId2]).fetchall()[0][0]
         else:
-            MorselId1 = db(con, "INSERT INTO Morsel(BookId, NumInBook, Knum) VALUES(?, ?, ?)", (BookId1, NumInBook, Knum))
-            MorselId2 = db(con, "INSERT INTO Morsel(BookId, NumInBook, Knum) VALUES(?, ?, ?)", (BookId2, NumInBook, Knum))
+            MorselId1 = db(con, "INSERT INTO Morsel(BookId, Knum) VALUES(?, ?)", (BookId1, Knum))
+            MorselId2 = db(con, "INSERT INTO Morsel(BookId, Knum) VALUES(?, ?)", (BookId2, Knum))
         # Region: (BookId, MorselId, RegionId,   RegionType, Name, ImageUrl, PageUrl, Text)
         db(con, "INSERT INTO Region(BookId, MorselId,   RegionType, Name, ImageUrl, PageUrl, Text) VALUES(?, ?, ?, ?, ?, ?, ?)",
                                    (BookId1, MorselId1,   'All', '', imagesPrefix + gopinath1914_img, imagesPrefix + gopinath1914_img, ''))
@@ -114,9 +106,7 @@ BookId1 = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Tawney'])
 BookId2 = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Telang'])
 morsel_for_regionname = {}
 with open('data/alignment/Telang-Tawney.csv') as f:
-    NumInBook = 0
     for row in csv.reader(f):
-        NumInBook += 1
         (telang, snippet, kosambi, tawney) = row
         try:
             kosambi = f'K{int(kosambi):03}'
@@ -124,11 +114,11 @@ with open('data/alignment/Telang-Tawney.csv') as f:
         except:
             Knum = None
         if tawney:
-            MorselId = db(con, "INSERT INTO Morsel(BookId, NumInBook, Knum) VALUES(?, ?, ?)", (BookId1, NumInBook, Knum))
+            MorselId = db(con, "INSERT INTO Morsel(BookId, Knum) VALUES(?, ?)", (BookId1, Knum))
             for (Text, Indentation) in Lines(tawney):
                 db(con, "INSERT INTO Line(BookId, MorselId,   Text, Indentation) VALUES(?, ?, ?, ?)", (BookId1, MorselId,   Text, Indentation))
         if telang:
-            MorselId = db(con, "INSERT INTO Morsel(BookId, NumInBook, Knum) VALUES(?, ?, ?)", (BookId2, NumInBook, Knum))
+            MorselId = db(con, "INSERT INTO Morsel(BookId, Knum) VALUES(?, ?)", (BookId2, Knum))
             # TODO: Some Morsels get no Regions, because of collisions in Region names: the *next* MorselId (for next region) overwrites this.
             if MorselId in [960, 992, 1022, 1095, 1114, 1137, 1156, 1171, 1191, 1497]: print(f'Morsel {MorselId} without lines or regions: row is', row)
             morsel_for_regionname[telang] = MorselId
@@ -170,12 +160,10 @@ with open('data/regions/kosambi-regions-out.json') as file:
     totHeight = t['totHeight']
     imageUrlPrefix = t['imageUrlPrefix']
     pageUrlPrefix = t['pageUrlPrefix']
-    NumInBook = 0
     for (region_name, types_and_regions) in t['regions']:
-        NumInBook += 1
         Knum = 'K' + region_name
-        # Morsel: (BookId, MorselId,   NumInBook, Knum?)
-        MorselId = db(con, "INSERT INTO Morsel(BookId, NumInBook, Knum) VALUES(?, ?, ?)", (BookId, NumInBook, Knum))
+        # Morsel: (BookId, MorselId,   Knum?)
+        MorselId = db(con, "INSERT INTO Morsel(BookId, Knum) VALUES(?, ?)", (BookId, Knum))
         for (type, regions) in types_and_regions.items():
             for region in regions:
                 n = region['page_id'] - 1
