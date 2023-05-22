@@ -41,7 +41,6 @@ db(con, "CREATE TABLE Line(BookId, MorselId, LineId INTEGER PRIMARY KEY,   Text,
 db(con, "CREATE TABLE Region(BookId, MorselId, RegionId INTEGER PRIMARY KEY,   RegionType, Name, ImageUrl, PageUrl, Text)")
 
 BookId = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Ryder'])
-print('BookId', BookId)
 with open('data/alignment/Ryder.csv') as f:
     NumInBook = 0
     for row in csv.reader(f):
@@ -194,4 +193,8 @@ with open('data/regions/kosambi-regions-out.json') as file:
                 db(con, "INSERT INTO Region(BookId, MorselId,   RegionType, Name, ImageUrl, PageUrl, Text) VALUES(?, ?, ?, ?, ?, ?, ?)",
                                           ((BookId, MorselId,   type, region_name, ImageUrl, PageUrl, text)))
 
+con.execute('CREATE INDEX i1 ON Line(MorselId)')
+con.execute('CREATE INDEX i2 ON Region(MorselId)')
+con.execute('CREATE INDEX i3 ON Morsel(BookId)')
+con.execute('CREATE INDEX i4 ON Morsel(Knum)')
 con.close()

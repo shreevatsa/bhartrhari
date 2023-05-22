@@ -74,6 +74,7 @@ for (BookId, Title) in con.execute('SELECT * FROM Book'):
         morsels = morsels_for_book
     ))
 
+print('Making page for Knums')
 # A page for each Knum.
 for knum in knums:
     # SELECT MorselId FROM Morsel WHERE Knum=?
