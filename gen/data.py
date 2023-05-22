@@ -1,8 +1,6 @@
-import collections
 import csv
 import json
 import sqlite3
-from typing import List
 
 def Lines(text: str):
     """Turns a text block into a sequence of (text, indentation) pairs."""
@@ -101,8 +99,7 @@ with open('data/alignment/Gopinath.csv') as f:
             Knum = kosambi
         except:
             Knum = None
-        if comment == '(continued)': # Happens in two places
-            print(BookId1, type(BookId1))
+        if comment == '(continued)': # Happens in two places. Reuse MorselId.
             MorselId1 = con.execute('SELECT MAX(MorselId) FROM Morsel WHERE BookId = ?', [BookId1]).fetchall()[0][0]
             MorselId2 = con.execute('SELECT MAX(MorselId) FROM Morsel WHERE BookId = ?', [BookId2]).fetchall()[0][0]
         else:
@@ -129,12 +126,14 @@ with open('data/alignment/Telang-Tawney.csv') as f:
         except:
             Knum = None
         if tawney:
-            MorselId1 = db(con, "INSERT INTO Morsel(BookId, NumInBook, Knum) VALUES(?, ?, ?)", (BookId1, NumInBook, Knum))
+            MorselId = db(con, "INSERT INTO Morsel(BookId, NumInBook, Knum) VALUES(?, ?, ?)", (BookId1, NumInBook, Knum))
             for (Text, Indentation) in Lines(tawney):
-                db(con, "INSERT INTO Line(BookId, MorselId,   Text, Indentation) VALUES(?, ?, ?, ?)", (BookId1, MorselId1,   Text, Indentation))
+                db(con, "INSERT INTO Line(BookId, MorselId,   Text, Indentation) VALUES(?, ?, ?, ?)", (BookId1, MorselId,   Text, Indentation))
         if telang:
-            MorselId2 = db(con, "INSERT INTO Morsel(BookId, NumInBook, Knum) VALUES(?, ?, ?)", (BookId2, NumInBook, Knum))
-            morsel_for_regionname[telang] = MorselId2
+            MorselId = db(con, "INSERT INTO Morsel(BookId, NumInBook, Knum) VALUES(?, ?, ?)", (BookId2, NumInBook, Knum))
+            # TODO: Some Morsels get no Regions, because of collisions in Region names: the *next* MorselId (for next region) overwrites this.
+            if MorselId in [960, 992, 1022, 1095, 1114, 1137, 1156, 1171, 1191, 1497]: print(f'Morsel {MorselId} without lines or regions: row is', row)
+            morsel_for_regionname[telang] = MorselId
 
 BookId = BookId2
 with open('data/regions/telang-regions-out.json') as file:
@@ -156,7 +155,7 @@ with open('data/regions/telang-regions-out.json') as file:
                 try:
                     MorselId = morsel_for_regionname[region_name]
                 except KeyError:
-                    print(region)
+                    print('Region without morsel:', region)
                     if region_name != 'V156~H': raise
                 # Region: (BookId, MorselId, RegionId,   RegionType, Name, ImageUrl, PageUrl, Text)
                 assert isinstance(region['text'], list)
@@ -186,7 +185,7 @@ with open('data/regions/kosambi-regions-out.json') as file:
                 y = int(region['ymin'] / totHeight * 1000) / 1000
                 w = (int(region['width'] / totWidth * 100) + 2) / 100
                 h = (int(region['height'] / totHeight * 1000) + 5) / 1000
-                ImageUrl = f'{imageUrlPrefix}/page/n{n}_x{x}_y{y}_w{w}_h{h}.jpg'
+                ImageUrl = f'{imageUrlPrefix}/page/n{n}_x{x}_y{y}_w{w}_h{h}_s4.jpg'
                 PageUrl = f'{pageUrlPrefix}/page/n{n}/mode/2up'
                 # Region: (BookId, MorselId, RegionId,   RegionType, Name, ImageUrl, PageUrl, Text)
                 assert isinstance(region['text'], list)
@@ -194,17 +193,5 @@ with open('data/regions/kosambi-regions-out.json') as file:
                 text = '\n'.join(region['text'])
                 db(con, "INSERT INTO Region(BookId, MorselId,   RegionType, Name, ImageUrl, PageUrl, Text) VALUES(?, ?, ?, ?, ?, ?, ?)",
                                           ((BookId, MorselId,   type, region_name, ImageUrl, PageUrl, text)))
-
-
-print(con.execute('SELECT * from Book'))
-Book = [row[0] for row in con.execute('SELECT Title from Book')]
-Morsel = [row for row in con.execute('SELECT BookId,   NumInBook, Knum FROM Morsel')]
-Line = [row for row in con.execute('SELECT BookId, MorselId,   Text, Indentation FROM Line')]
-Region = [row for row in con.execute('SELECT BookId, MorselId,   RegionType, Name, ImageUrl, PageUrl, Text FROM Region')]
-json.dump(
-    [Book, Morsel, Line, Region],
-    open('data.json', 'w'),
-    indent=2
-    )
 
 con.close()

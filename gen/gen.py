@@ -1,21 +1,11 @@
 from jinja2 import Environment, FileSystemLoader, select_autoescape, StrictUndefined
-import json
 import collections
+import sqlite3
 
 # Book:   (BookId,   Title)
 # Morsel: (BookId, MorselId,   NumInBook, Knum?)
 # Line:   (BookId, MorselId, LineId,   Text, Indentation)
 # Region: (BookId, MorselId, RegionId,   RegionType, Name, ImageUrl, PageUrl, Text)
-[Book, Morsel, Line, Region] = json.load(open('data.json'))
-
-def nonempty(input):
-    """Asserts that the input is nonempty."""
-    assert input, input
-    return input
-
-def debug(text):
-  print(text)
-  return ''
 
 # Create a custom Jinja2 environment
 env = Environment(
@@ -23,43 +13,49 @@ env = Environment(
     autoescape=select_autoescape(['html', 'xml']),
     undefined=StrictUndefined
 )
+env.filters['debug'] = lambda text: print(text)
+def nonempty(input):
+    """Asserts that the input is nonempty."""
+    assert input, input
+    return input
 env.filters['nonempty'] = nonempty
-env.filters['debug'] = debug
 
 # We want to create the following HTML pages:
 # -   an index page
 # -   a page for each book
 # -   a page for each Knum
 
+con = sqlite3.connect("data.db")
+
 # Index
 # SELECT DISTINCT knum FROM Morsel; -- ORDER BY number of Morsel desc.
-knums = [knum
-         for (knum, count) in collections.Counter(Knum for (BookId, NumInBook, Knum) in Morsel).most_common()
-         if knum]
+knums = [knum for (knum, count) in con.execute('SELECT knum, COUNT(*) FROM Morsel GROUP BY 1 ORDER BY 2 DESC') if knum is not None]
 # SELECT Title FROM Book;
 open('web/index.html', 'w').write(env.get_template('gen/index.html').render(
     knums = knums,
-    books = Book
+    books = [Title for (Title,) in con.execute('SELECT Title FROM Book')]
 ))
 
-print('Start')
+def db1(con, sql, *args):
+    rows = con.execute(sql, *args).fetchall()
+    assert len(rows) == 1, rows
+    assert len(rows[0]) == 1, rows[0]
+    return rows[0][0]
+
+print('Collecting lines and regions for each MorselId')
 morsels_for_id = {}
-for morsel_id, (BookId,   NumInBook, Knum) in enumerate(Morsel):
-    BookTitle = Book[BookId - 1]
+for (BookId, MorselId,  NumInBook, Knum) in con.execute('SELECT * FROM Morsel'):
+    BookTitle = db1(con, 'SELECT Title from Book WHERE BookId = ?', [BookId])
     # The Lines or Regions for this morsel_id
     lines = []
-    regions = collections.defaultdict(list)
-    # TODO: These are "full table scans" :-)
-    # SELECT * FROM Line WHERE MorselId = ?
-    for LineId, (BookId, MorselId,   Text, Indentation) in enumerate(Line):
-        if MorselId != morsel_id: continue
+    for (BookId, MorselId, LineId,   Text, Indentation) in con.execute('SELECT * FROM Line WHERE MorselId = ?', [MorselId]):
         lines.append({'text': Text, 'indentation': Indentation})
+    regions = collections.defaultdict(list)
     # SELECT * FROM Region WHERE MorselId = ? GROUP BY RegionType
-    for RegionId, (BookId, MorselId,   RegionType, Name, ImageUrl, PageUrl, Text) in enumerate(Region):
-        if MorselId != morsel_id: continue
+    for (BookId, MorselId, RegionId,   RegionType, Name, ImageUrl, PageUrl, Text) in con.execute('SELECT * FROM Region WHERE MorselId = ?', [MorselId]):
         regions[RegionType].append((Name, ImageUrl, PageUrl, Text))
-    morsels_for_id[morsel_id] = {
-        'MorselId': morsel_id,
+    morsels_for_id[MorselId] = {
+        'MorselId': MorselId,
         'BookTitle': BookTitle,
         'Knum': Knum,
         'lines': lines,
@@ -68,22 +64,21 @@ for morsel_id, (BookId,   NumInBook, Knum) in enumerate(Morsel):
 print('End')
 
 # A page for each book.
-for i, title in enumerate(Book):
-    print(f'Making page for {title}')
+for (BookId, Title) in con.execute('SELECT * FROM Book'):
+    print(f'Making page for {Title}')
     # SELECT * FROM Morsel WHERE BookId=? ORDER BY NumInBook
-    morsel_ids = [MorselId for (MorselId, (BookId,   NumInBook, Knum)) in enumerate(Morsel) if BookId==i+1]
-    morsels_for_book = [morsels_for_id[morsel_id] for morsel_id in morsel_ids]
-    open(f'web/{title}.html', 'w').write(env.get_template('gen/book.html').render(
-        bookTitle = title,
+    morsel_ids = con.execute('SELECT MorselId FROM Morsel WHERE BookId = ?', [BookId])
+    morsels_for_book = [morsels_for_id[morsel_id] for (morsel_id,) in morsel_ids]
+    open(f'web/{Title}.html', 'w').write(env.get_template('gen/book.html').render(
+        bookTitle = Title,
         morsels = morsels_for_book
     ))
 
 # A page for each Knum.
 for knum in knums:
     # SELECT MorselId FROM Morsel WHERE Knum=?
-    # TODO: ORDER BY BookId
-    morsel_ids = [MorselId for (MorselId, (BookId,   NumInBook, Knum)) in enumerate(Morsel) if Knum==knum]
-    morsels_for_knum = [morsels_for_id[morsel_id] for morsel_id in morsel_ids]
+    morsel_ids = con.execute('SELECT MorselId FROM Morsel WHERE Knum = ? ORDER BY BookId', [knum])
+    morsels_for_knum = [morsels_for_id[morsel_id] for (morsel_id,) in morsel_ids]
     open(f'web/{knum}.html', 'w').write(env.get_template('gen/template.html').render(
         Knum = knum,
         morsels = morsels_for_knum
