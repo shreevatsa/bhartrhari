@@ -29,6 +29,11 @@ def db(con, sql, *args):
     cursor = con.execute(sql, *args)
     return cursor.lastrowid
 
+def get_book(con, Title):
+    rows = con.execute('SELECT BookId FROM Book WHERE Title = ?', [Title]).fetchall()
+    assert len(rows) == 1
+    return rows[0][0]
+
 # Book:   (BookId,   Title)
 # Morsel: (BookId, MorselId,   Knum?)
 # Line:   (BookId, MorselId, LineId,   Text, Indentation)
@@ -39,7 +44,12 @@ db(con, "CREATE TABLE Morsel(BookId, MorselId INTEGER PRIMARY KEY,   Knum)")
 db(con, "CREATE TABLE Line(BookId, MorselId, LineId INTEGER PRIMARY KEY,   Text, Indentation)")
 db(con, "CREATE TABLE Region(BookId, MorselId, RegionId INTEGER PRIMARY KEY,   RegionType, Name, ImageUrl, PageUrl, Text)")
 
-BookId = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Ryder'])
+# Manually add books in preferred order.
+for Title in ['Ryder', 'Brough', 'Tawney', 'Mādhavānanda', 'Telang', 'Gopinath1914', 'Gopinath1896', 'Kosambi']:
+    db(con, "INSERT INTO Book(Title) VALUES(?)", [Title])
+
+
+BookId = get_book(con, 'Ryder')
 with open('data/alignment/Ryder.csv') as f:
     for row in csv.reader(f):
         (n, text, kosambi) = row
@@ -52,7 +62,7 @@ with open('data/alignment/Ryder.csv') as f:
         for (Text, Indentation) in Lines(text):
             db(con, "INSERT INTO Line(BookId, MorselId,   Text, Indentation) VALUES(?, ?, ?, ?)", (BookId, MorselId,   Text, Indentation))
 
-BookId = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Brough'])
+BookId = get_book(con, 'Brough')
 with open('data/alignment/Brough.csv') as f:
     for row in csv.reader(f):
         (n, text, kosambi) = row
@@ -65,7 +75,7 @@ with open('data/alignment/Brough.csv') as f:
         for (Text, Indentation) in Lines(text):
             db(con, "INSERT INTO Line(BookId, MorselId,   Text, Indentation) VALUES(?, ?, ?, ?)", (BookId, MorselId,   Text, Indentation))
 
-BookId = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Mādhavānanda'])
+BookId = get_book(con, 'Mādhavānanda')
 with open('data/alignment/Madhavananda.csv') as f:
     for row in csv.reader(f):
         (_, text, kosambi) = row
@@ -78,8 +88,8 @@ with open('data/alignment/Madhavananda.csv') as f:
         for (Text, Indentation) in Lines(text):
             db(con, "INSERT INTO Line(BookId, MorselId,   Text, Indentation) VALUES(?, ?, ?, ?)", (BookId, MorselId,   Text, Indentation))
 
-BookId1 = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Gopinath1914'])
-BookId2 = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Gopinath1896'])
+BookId1 = get_book(con, 'Gopinath1914')
+BookId2 = get_book(con, 'Gopinath1896')
 imagesPrefix = '../data/images/'
 with open('data/alignment/Gopinath.csv') as f:
     for row in csv.reader(f):
@@ -100,10 +110,10 @@ with open('data/alignment/Gopinath.csv') as f:
                                    (BookId1, MorselId1,   'All', '', imagesPrefix + gopinath1914_img, imagesPrefix + gopinath1914_img, ''))
         db(con, "INSERT INTO Region(BookId, MorselId,   RegionType, Name, ImageUrl, PageUrl, Text) VALUES(?, ?, ?, ?, ?, ?, ?)",
                                    (BookId2, MorselId2,   'All', '', imagesPrefix + gopinath1896_img, imagesPrefix + gopinath1896_img, ''))
-        
 
-BookId1 = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Tawney'])
-BookId2 = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Telang'])
+
+BookId1 = get_book(con, 'Tawney')
+BookId2 = get_book(con, 'Telang')
 morsel_for_regionname = {}
 with open('data/alignment/Telang-Tawney.csv') as f:
     for row in csv.reader(f):
@@ -153,7 +163,7 @@ with open('data/regions/telang-regions-out.json') as file:
                                            (BookId, MorselId,   type, region_name, ImageUrl, PageUrl, text))
 morsel_for_regionname = {}
 
-BookId = db(con, "INSERT INTO Book(Title) VALUES(?)", ['Kosambi'])
+BookId = get_book(con, 'Kosambi')
 with open('data/regions/kosambi-regions-out.json') as file:
     t = json.load(file)
     totWidth = t['totWidth']
