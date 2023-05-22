@@ -61,7 +61,7 @@ for morsel_id, (BookId,   NumInBook, Knum) in enumerate(Morsel):
     morsels_for_id[morsel_id] = {
         'MorselId': morsel_id,
         'BookTitle': BookTitle,
-        'Knum': Knum if BookTitle != 'Kosambi' else None,
+        'Knum': Knum,
         'lines': lines,
         'regions': regions
     }
