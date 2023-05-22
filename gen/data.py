@@ -1,216 +1,177 @@
 import collections
 import csv
 import json
+from typing import List
 
-regions_per_book = {}
+def Lines(text: str):
+    """Turns a text block into a sequence of (text, indentation) pairs."""
+    # Ignore leading and trailing blank lines
+    lines = text.splitlines()
+    while lines and lines[0].strip() == '': lines = lines[1:]
+    while lines and lines[-1].strip() == '': lines = lines[:-1]
+    if not lines: return []
+    # Expand tabs, and strip any common leading spaces
+    lines_expanded = []
+    leading = set()  # The leading indentation for non-empty lines
+    for line in lines:
+        line = line.replace('\t', '    ')
+        lines_expanded.append(line)
+        if line.strip():
+            leading.add(len(line) - len(line.lstrip()))
+    indent_lengths = list(sorted(leading))
+    # Now we have all the lines we need
+    ret = []
+    for line in lines_expanded:
+        ret.append((line.lstrip(),
+                    indent_lengths.index(len(line) - len(line.lstrip())) if line.strip() else 0))
+    return ret
+
+
+Book = []    # Book:   (BookId,   Title)
+Morsel = []  # Morsel: (BookId, MorselId,   NumInBook, Knum?)
+Line = []    # Line:   (BookId, MorselId, LineId,   Text, Indentation)
+Region = []  # Region: (BookId, MorselId, RegionId,   RegionType, Name, ImageUrl, PageUrl, Text)
+
+BookId = len(Book); Book.append('Ryder')
+with open('data/alignment/Ryder.csv') as f:
+    NumInBook = 0
+    for row in csv.reader(f):
+        NumInBook += 1
+        (n, text, kosambi) = row
+        try:
+            kosambi = f'K{int(kosambi):03}'
+            Knum = kosambi
+        except:
+            Knum = None
+        MorselId = len(Morsel); Morsel.append((BookId, NumInBook, Knum))
+        for (Text, Indentation) in Lines(text):
+            Line.append((BookId, MorselId,   Text, Indentation))
+
+BookId = len(Book); Book.append('Brough')
+with open('data/alignment/Brough.csv') as f:
+    NumInBook = 0
+    for row in csv.reader(f):
+        NumInBook += 1
+        (n, text, kosambi) = row
+        try:
+            kosambi = f'K{int(kosambi):03}'
+            Knum = kosambi
+        except:
+            Knum = None
+        MorselId = len(Morsel); Morsel.append((BookId, NumInBook, Knum))
+        for (Text, Indentation) in Lines(text):
+            Line.append((BookId, MorselId,   Text, Indentation))
+
+BookId = len(Book); Book.append('Mādhavānanda')
+with open('data/alignment/Madhavananda.csv') as f:
+    NumInBook = 0
+    for row in csv.reader(f):
+        NumInBook += 1
+        (_, text, kosambi) = row
+        try:
+            kosambi = f'K{int(kosambi):03}'
+            Knum = kosambi
+        except:
+            Knum = None
+        MorselId = len(Morsel); Morsel.append((BookId, NumInBook, Knum))
+        for (Text, Indentation) in Lines(text):
+            Line.append((BookId, MorselId,   Text, Indentation))
+
+BookId1 = len(Book); Book.append('Gopinath1914');
+BookId2 = len(Book); Book.append('Gopinath1896')
+imagesPrefix = '../data/images/'
+with open('data/alignment/Gopinath.csv') as f:
+    NumInBook = 0
+    for row in csv.reader(f):
+        NumInBook += 1
+        (comment, gopinath_num, gopinath1896_img, gopinath1914_img, kosambi) = row
+        try:
+            kosambi = f'K{int(kosambi):03}'
+            Knum = kosambi
+        except:
+            Knum = None
+        if comment == '(continued)': # Happens in two places
+            MorselId1 = len(Morsel) - 2
+            MorselId2 = len(Morsel) - 1
+        else:
+            MorselId1 = len(Morsel); Morsel.append((BookId1, NumInBook, Knum))
+            MorselId2 = len(Morsel); Morsel.append((BookId2, NumInBook, Knum))
+        # Region: (BookId, MorselId, RegionId,   RegionType, Name, ImageUrl, PageUrl, Text)
+        Region.append((BookId1, MorselId1,   'All', '', imagesPrefix + gopinath1914_img, imagesPrefix + gopinath1914_img, ''))
+        Region.append((BookId2, MorselId2,   'All', '', imagesPrefix + gopinath1896_img, imagesPrefix + gopinath1896_img, ''))
+
+BookId1 = len(Book); Book.append('Tawney')
+BookId2 = len(Book); Book.append('Telang')
+morsel_for_regionname = {}
+with open('data/alignment/Telang-Tawney.csv') as f:
+    NumInBook = 0
+    for row in csv.reader(f):
+        NumInBook += 1
+        (telang, snippet, kosambi, tawney) = row
+        try:
+            kosambi = f'K{int(kosambi):03}'
+            Knum = kosambi
+        except:
+            Knum = None
+        MorselId1 = len(Morsel); Morsel.append((BookId1, NumInBook, Knum))
+        MorselId2 = len(Morsel); Morsel.append((BookId2, NumInBook, Knum))
+        for (Text, Indentation) in Lines(tawney):
+            Line.append((BookId, MorselId1,   Text, Indentation))
+        morsel_for_regionname[telang] = MorselId2
+
+BookId = BookId2
 with open('data/regions/telang-regions-out.json') as file:
     t = json.load(file)
     totWidth = t['totWidth']
     totHeight = t['totHeight']
     imageUrlPrefix = t['imageUrlPrefix'] + '_202305'
     pageUrlPrefix = t['pageUrlPrefix'] + '_202305'
-    regions_by_name = {}
     for (region_name, types_and_regions) in t['regions']:
-        regions_by_name[region_name] = collections.defaultdict(list)
         for (type, regions) in types_and_regions.items():
             for region in regions:
-                regions_by_name[region_name][type].append({
-                    'n': region['slug'] - 1,
-                    'x': int(region['xmin'] / totWidth * 100) / 100,
-                    'y': int(region['ymin'] / totHeight * 1000) / 1000,
-                    'w': (int(region['width'] / totWidth * 100) + 2) / 100,
-                    'h': (int(region['height'] / totHeight * 1000) + 5) / 1000,
-                    'text': region['text'],
-                })
-    regions_per_book['Telang'] = {
-        'regions': regions_by_name,
-        'imageUrlPrefix': imageUrlPrefix,
-        'pageUrlPrefix': pageUrlPrefix,
-    }
+                n = region['slug'] - 1
+                x = int(region['xmin'] / totWidth * 100) / 100
+                y = int(region['ymin'] / totHeight * 1000) / 1000
+                w = (int(region['width'] / totWidth * 100) + 2) / 100
+                h = (int(region['height'] / totHeight * 1000) + 5) / 1000
+                ImageUrl = f'{imageUrlPrefix}/page/n{n}_x{x}_y{y}_w{w}_h{h}.jpg'
+                PageUrl = f'{pageUrlPrefix}/page/n{n}/mode/2up'
+                try:
+                    MorselId = morsel_for_regionname[region_name]
+                except KeyError:
+                    print(region)
+                    if region_name != 'V156~H': raise
+                # Region: (BookId, MorselId, RegionId,   RegionType, Name, ImageUrl, PageUrl, Text)
+                Region.append((BookId, MorselId,   type, region_name, ImageUrl, PageUrl, region['text']))
+morsel_for_regionname = {}
+
+BookId = len(Book); Book.append('Kosambi')
 with open('data/regions/kosambi-regions-out.json') as file:
     t = json.load(file)
     totWidth = t['totWidth']
     totHeight = t['totHeight']
     imageUrlPrefix = t['imageUrlPrefix']
     pageUrlPrefix = t['pageUrlPrefix']
-    regions_by_name = {}
+    NumInBook = 0
     for (region_name, types_and_regions) in t['regions']:
-        region_name = 'K' + region_name
-        regions_by_name[region_name] = collections.defaultdict(list)
+        NumInBook += 1
+        Knum = 'K' + region_name
         for (type, regions) in types_and_regions.items():
             for region in regions:
-                regions_by_name[region_name][type].append({
-                    'n': region['page_id'] - 1,
-                    'x': int(region['xmin'] / totWidth * 100) / 100,
-                    'y': int(region['ymin'] / totHeight * 1000) / 1000,
-                    'w': (int(region['width'] / totWidth * 100) + 2) / 100,
-                    'h': (int(region['height'] / totHeight * 1000) + 5) / 1000,
-                    'text': region['text'],
-                })
-    print(regions_by_name.keys())
-    regions_per_book['Kosambi'] = {
-        'regions': regions_by_name,
-        'imageUrlPrefix': imageUrlPrefix,
-        'pageUrlPrefix': pageUrlPrefix,
-    }
-
-# Read the CSV files (v -> K) and do two things:
-# 1. generate the HTML pages for each version,
-# 2. map them back (K -> [v])
-from jinja2 import Environment, FileSystemLoader, select_autoescape, StrictUndefined
-# Create a custom Jinja2 environment
-env = Environment(
-    loader=FileSystemLoader('./'),
-    autoescape=select_autoescape(['html', 'xml']),
-    undefined=StrictUndefined
-)
-template = env.get_template('gen/book.html')
-
-versions = collections.defaultdict(lambda: collections.defaultdict(list))
-
-def lines(version):
-    # Ignore leading and trailing blank lines
-    lines = version.splitlines()
-    while lines and lines[0].strip() == '': lines = lines[1:]
-    while lines and lines[-1].strip() == '': lines = lines[:-1]
-    if not lines: return None
-    # Expand tabs, and strip any common leading spaces
-    lines_for_template = []
-    common = 10**9
-    lines_expanded = []
-    for line in lines:
-        line = line.replace('\t', '    ')
-        lines_expanded.append(line)
-        if line.lstrip(): common = min(common, len(line) - len(line.lstrip()))
-    # Now we have all the lines we need, for passing into the template.
-    for line in lines_expanded:
-        assert line.strip() == '' or line[:common] == ' ' * common
-        line = line[common:]
-        lines_for_template.append({
-            'indented': line.startswith(' '),
-            'text': line,
-        })
-    return lines_for_template
-
-with open('data/alignment/Ryder.csv') as f:
-    reader = csv.reader(f)
-    verses_for_template = []
-    for row in reader:
-        (n, ryder, kosambi) = row
-        try: kosambi = f'K{int(kosambi):03}'
-        except: pass
-        versions[kosambi]['Ryder'].append(ryder)
-        lines_for_template = lines(ryder)
-        if not lines_for_template: continue
-        verses_for_template.append({
-            'title': n,
-            'id': kosambi,
-            'lines': lines_for_template,
-        })
-    open('web/Ryder.html', 'w').write(template.render(
-        bookTitle='Ryder',
-        verses=verses_for_template
-    ))
-
-with open('data/alignment/Brough.csv') as f:
-    reader = csv.reader(f)
-    verses_for_template = []
-    for row in reader:
-        (n, brough, kosambi) = row
-        try: kosambi = f'K{int(kosambi):03}'
-        except: pass
-        versions[kosambi]['Brough'].append(brough)
-        lines_for_template = lines(brough)
-        if not lines_for_template: continue
-        verses_for_template.append({
-            'title': n,
-            'id': kosambi,
-            'lines': lines_for_template,
-        })
-    open('web/Brough.html', 'w').write(template.render(
-        bookTitle='Brough',
-        verses=verses_for_template
-    ))
-
-with open('data/alignment/Telang-Tawney.csv') as f:
-    reader = csv.reader(f)
-    verses_telang = []
-    verses_tawney = []
-    for row in reader:
-        (telang, snippet, kosambi, tawney, tawneyvtf) = row
-        try: kosambi = f'K{int(kosambi):03}'
-        except: pass
-        versions[kosambi]['Telang'].append(telang)
-        versions[kosambi]['Tawney'].append(tawney)
-        lines_tawney = lines(tawney)
-        if not lines_tawney: continue
-        verses_tawney.append({
-            'title': n,
-            'id': kosambi,
-            'lines': lines_tawney,
-        })
-        verses_telang.append({
-            'title': n,
-            'id': kosambi,            
-            'regions': regions_per_book['Telang']['regions'].get(telang, {}),
-            'pageUrlPrefix': regions_per_book['Telang']['pageUrlPrefix'],
-            'imageUrlPrefix': regions_per_book['Telang']['imageUrlPrefix'],
-        })
-    open('web/Telang.html', 'w').write(template.render(
-        bookTitle='Telang',
-        verses=verses_telang
-    ))
-    open('web/Tawney.html', 'w').write(template.render(
-        bookTitle='Tawney',
-        verses=verses_tawney
-    ))
-
-with open('data/alignment/Madhavananda.csv') as f:
-    reader = csv.reader(f)
-    verses_for_template = []
-    for row in reader:
-        (_, madhavananda, kosambi) = row
-        try: kosambi = f'K{int(kosambi):03}'
-        except: pass
-        versions[kosambi]['Mādhavānanda'].append(madhavananda)
-        lines_for_template = lines(madhavananda)
-        if not lines_for_template: continue
-        verses_for_template.append({
-            'title': n,
-            'id': kosambi,
-            'lines': lines_for_template,
-        })
-    open('web/Mādhavānanda.html', 'w').write(template.render(
-        bookTitle='Mādhavānanda',
-        verses=verses_for_template
-    ))
-
-
-with open('data/alignment/Gopinath.csv') as f:
-    reader = csv.reader(f)
-    verses_for_template = []
-    for row in reader:
-        (comment, gopinath_num, gopinath1896_img, gopinath1914_img, kosambi) = row
-        try: kosambi = f'K{int(kosambi):03}'
-        except: pass
-        versions[kosambi]['Gopinath1896'].append(gopinath1896_img)
-        versions[kosambi]['Gopinath1914'].append(gopinath1914_img)
-        verses_for_template.append({
-            'title': 'Gopinath1914',
-            'image_urls': ['../data/images/' + gopinath1914_img],
-        })
-    open('web/Gopinath1914.html', 'w').write(template.render(
-        bookTitle='Gopinath1914',
-        verses=verses_for_template
-    ))
-# The header row and certain other rows have unusual values for the "Kosambi" column.
-del versions['Kosambi']
-del versions['']
+                # Morsel: (BookId, MorselId,   NumInBook, Knum?)
+                MorselId = len(Morsel); Morsel.append((BookId,   NumInBook, Knum))
+                n = region['page_id'] - 1
+                x = int(region['xmin'] / totWidth * 100) / 100
+                y = int(region['ymin'] / totHeight * 1000) / 1000
+                w = (int(region['width'] / totWidth * 100) + 2) / 100
+                h = (int(region['height'] / totHeight * 1000) + 5) / 1000
+                ImageUrl = f'{imageUrlPrefix}/page/n{n}_x{x}_y{y}_w{w}_h{h}.jpg'
+                PageUrl = f'{pageUrlPrefix}/page/n{n}/mode/2up'
+                # Region: (BookId, MorselId, RegionId,   RegionType, Name, ImageUrl, PageUrl, Text)
+                Region.append((BookId, MorselId,   type, region_name, ImageUrl, PageUrl, region['text']))
 
 json.dump(
-    {
-        'versions': versions,
-        'regions_per_book': regions_per_book,
-    },
-    open('data.json', 'w')
-)
+    [Book, Morsel, Line, Region],
+    open('data.json', 'w'),
+    indent=2
+    )

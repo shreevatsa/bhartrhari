@@ -4,47 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bhartṛhari {{knum}}</title>
+    <title>Bhartṛhari {{Knum}}</title>
     <link rel="stylesheet" type="text/css" href="common.css">
 </head>
 
 <body>
     <div class="container">
-        {% for version in versions %}
-        <div class="translation">
-            <h3>{% if version.title != 'Kosambi' %}<a href="{{version.title}}.html#{{knum}}">{{version.title}}</a>{%
-                else %}{{version.title}}{% endif %}</h3>
-            {% if 'lines' in version and version.lines %}
-            <div class="lines">
-                {% for line in version.lines %}
-                <span class="line{% if line.indented %} indented{% endif %}">{{ line.text }}</span>
-                {% endfor %}
-            </div>
-            {% elif 'image_urls' in version %}
-            {% for url in version.image_urls %}
-            <img class="page-image" src="{{url}}">
-            {% endfor %}
-            {% else %}
-            {% for (region_type, regions) in version.regions.items() %}
-            <div class="outer-s">
-                <h4>{{region_type}}</h4>
-                {% for region in regions %}
-                <a href="{{version.pageUrlPrefix}}/page/n{{region.n}}/mode/2up"><img
-                        src="{{version.imageUrlPrefix}}/page/n{{region.n}}_x{{region.x}}_y{{region.y}}_w{{region.w}}_h{{region.h}}.jpg"
-                        class="inner-img"></a>
-                {% endfor %}
-                <details>
-                    <summary>(not proofread)</summary>
-                    {% for region in regions %}
-                    {% for line in region['text'] %}
-                    <p>{{line}}</p>
-                    {% endfor %}
-                    {% endfor %}
-                </details>
-            </div>
-            {% endfor %}
-            {% endif %}
-        </div>
+        {% for morsel in morsels|nonempty %}
+        {% set linkBook = True %}
+        {% include "gen/morsel.html" %}
         {% endfor %}
     </div>
 </body>

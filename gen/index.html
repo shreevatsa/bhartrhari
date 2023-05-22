@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script>
+        var currentUrl = window.location.href;
+        if (!currentUrl.endsWith('/') && !currentUrl.endsWith('.html')) {
+            window.location.href = currentUrl + '/';
+        }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bhartṛhari poems</title>
+</head>
+
+<body>
+    <ul>
+        {% for k in knums %}
+        <li><a href="{{k}}.html">{{k}}</a></li>
+        {% endfor %}
+    </ul>
+</body>
+
+</html>
