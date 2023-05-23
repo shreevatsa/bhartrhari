@@ -53,7 +53,7 @@ for (BookId, MorselId,  Knum) in con.execute('SELECT * FROM Morsel'):
     regions = collections.defaultdict(list)
     # SELECT * FROM Region WHERE MorselId = ? GROUP BY RegionType
     for (BookId, MorselId, RegionId,   RegionType, Name, ImageUrl, PageUrl, Text) in con.execute('SELECT * FROM Region WHERE MorselId = ?', [MorselId]):
-        regions[RegionType].append((Name, ImageUrl, PageUrl, Text))
+        regions[RegionType].append((Name, ImageUrl, PageUrl, Text.splitlines()))
     morsels_for_id[MorselId] = {
         'MorselId': MorselId,
         'BookTitle': BookTitle,
