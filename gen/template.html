@@ -6,6 +6,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bhartṛhari {{Knum}}</title>
     <link rel="stylesheet" type="text/css" href="common.css">
+    <script>
+        const pinned = new Set();
+        function pin(node) {
+            while (node && !node.classList.contains('translationContainer')) {
+                node = node.parentNode;
+            }
+            // Toggle the pinned status of this node.
+            if (pinned.has(node)) {
+                // Remove it.
+                node.classList.remove('pinned');
+                pinned.delete(node);
+                document.body.style.paddingTop = '';
+            } else {
+                // Add it, replacing any already pinned node.
+                for (let e of pinned) {
+                    e.classList.remove('pinned');
+                    pinned.delete(e);
+                    document.body.style.paddingTop = '';
+                }
+                console.log('pinning', node, 'with height', node.offsetHeight);
+                node.classList.add('pinned');
+                pinned.add(node);
+                document.body.style.paddingTop = `${node.offsetHeight}px`;
+            }
+        }
+    </script>
 </head>
 
 <body>

@@ -29,8 +29,12 @@
         {% else %}
         {{morsel|debug}}
         {% endif %}
-        {% if linkBook == False and morsel.Knum %}
-        <div style="padding-top: 1ex;"><a href="{{morsel.Knum}}.html">⭤</a></div>
+        {% if linkBook == False %}
+        {% if morsel.Knum %}
+        <div style="padding-top: 1ex;"><a href="{{morsel.Knum}}.html">⟷</a></div>
+        {% endif %}
+        {% else %}
+        <div style="padding-top: 1ex;"><button onclick="pin(this)">📌</button></div>
         {% endif %}
     </div>
 </div>

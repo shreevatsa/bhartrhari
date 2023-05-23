@@ -71,3 +71,8 @@ img.inner-img {
 img.page-image {
     max-width: 100%;
 }
+
+.pinned {
+    position: fixed;
+    top: 0;
+}
