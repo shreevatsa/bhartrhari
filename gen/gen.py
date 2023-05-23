@@ -32,7 +32,7 @@ con = sqlite3.connect("file:data.db?mode=ro", uri=True)
 knums = [knum for (knum, count) in con.execute('SELECT knum, COUNT(*) FROM Morsel GROUP BY 1 ORDER BY 2 DESC') if knum is not None]
 # SELECT Title FROM Book;
 open('web/index.html', 'w').write(env.get_template('gen/index.html').render(
-    knums = knums,
+    knums = sorted(knums),
     books = [Title for (Title,) in con.execute('SELECT Title FROM Book')]
 ))
 
