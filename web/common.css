@@ -73,6 +73,13 @@ img.page-image {
 }
 
 .pinned {
+    /* Make it stick to the top of the screen */
     position: fixed;
     top: 0;
+    /* And not occupy too much of it */
+    max-height: 50vh;
+    overflow-y: scroll;
+    /* Bring back the constraints that seem to go away. */
+    max-width: 600px;
+    margin: 0 auto;
 }
