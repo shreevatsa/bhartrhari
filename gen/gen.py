@@ -80,7 +80,7 @@ for knum in knums:
     # SELECT MorselId FROM Morsel WHERE Knum=?
     morsel_ids = con.execute('SELECT MorselId FROM Morsel WHERE Knum = ? ORDER BY BookId', [knum])
     morsels_for_knum = [morsels_for_id[morsel_id] for (morsel_id,) in morsel_ids]
-    open(f'web/{knum}.html', 'w').write(env.get_template('gen/template.html').render(
+    open(f'web/{knum}.html', 'w').write(env.get_template('gen/knum.html').render(
         Knum = knum,
         morsels = morsels_for_knum
     ))
