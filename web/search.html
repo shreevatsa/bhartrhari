@@ -1,0 +1,88 @@
+<meta charset="utf8" />
+<html>
+<script src='../dist/sql-wasm.js'></script>
+<script type="module">
+    const sqlPromise = initSqlJs({
+        locateFile: file => `../dist/${file}`
+    });
+    const dataPromise = fetch("../data.db").then(res => res.arrayBuffer());
+    const [SQL, buf] = await Promise.all([sqlPromise, dataPromise])
+    const db = new SQL.Database(new Uint8Array(buf));
+
+    function query(text) {
+        const stmt = db.prepare("SELECT * FROM Line JOIN Morsel ON (Line.MorselId = Morsel.MorselId) JOIN Book ON (Morsel.BookId = Book.BookId) WHERE LOWER(Text) Like LOWER($query)");
+        stmt.bind({ $query: `%${text}%` });
+        const rows = [];
+        while (stmt.step()) {
+            const row = stmt.getAsObject();
+            rows.push(row);
+            // console.log(row.Knum, row.Title, row.Text);
+        }
+        return rows;
+    }
+
+    const input = document.querySelector('input');
+    const results = document.getElementById("results");
+
+    function queryFromInput(e) {
+        results.innerHTML = '';
+
+        const rows = query(e.target.value);
+        const len = rows.length;
+
+        const p = document.createElement('p'); results.appendChild(p);
+        if (len > 100) {
+            p.textContent = `Matched over 100 rows.`;
+            return;
+        }
+        p.textContent = `Matched ${rows.length} rows.`;
+
+        const table = document.querySelector("#table").content.cloneNode(true);
+        results.appendChild(table);
+
+        const tbody = results.querySelector('tbody');
+        for (let row of rows) {
+            const tr = document.querySelector('#row').content.firstElementChild.cloneNode(true);
+            const td = tr.querySelectorAll('td');
+            console.log(td);
+            td[0].textContent = row.Knum;
+            td[1].textContent = row.Title;
+            td[2].textContent = row.Text;
+            console.log(tr);
+            tbody.appendChild(tr);
+        }
+        console.log(tbody);
+    }
+
+    input.addEventListener('input', queryFromInput);
+</script>
+
+<body>
+    <input>
+    <div id="results">
+    </div>
+
+    <template id="table">
+        <table>
+            <thead>
+                <tr>
+                    <td>Knum</td>
+                    <td>Book title</td>
+                    <td>Line</td>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </template>
+
+    <template id="row">
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    </template>
+</body>
+
+</html>
