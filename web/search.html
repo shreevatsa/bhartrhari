@@ -43,14 +43,11 @@
         for (let row of rows) {
             const tr = document.querySelector('#row').content.firstElementChild.cloneNode(true);
             const td = tr.querySelectorAll('td');
-            console.log(td);
-            td[0].textContent = row.Knum;
+            const a = document.createElement('a'); a.href = `${row.Knum}.html`; a.textContent = row.Knum; td[0].appendChild(a);
             td[1].textContent = row.Text;
             td[2].textContent = row.Title;
-            console.log(tr);
             tbody.appendChild(tr);
         }
-        console.log(tbody);
     }
 
     input.addEventListener('input', queryFromInput);
@@ -61,12 +58,13 @@
     td {
         border: 1px dotted black;
         border-collapse: collapse;
+        padding: 1ex;
     }
 
 </style>
 
 <body>
-    <p>Try searching for "bald" or "खलभयं". Not yet implemented: searching for "खल्वाटो" (searching in regions) or
+    <p>Try searching for "bald" or "खलभयं". Not yet implemented: searching for "खल्वाटो" (searching in regions' OCR) or
         "khala" (transliteration).</p>
     <input>
     <div id="results">
