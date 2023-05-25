@@ -10,7 +10,28 @@
     const db = new SQL.Database(new Uint8Array(buf));
 
     function query(text) {
-        const stmt = db.prepare("SELECT * FROM Line JOIN Morsel ON (Line.MorselId = Morsel.MorselId) JOIN Book ON (Morsel.BookId = Book.BookId) WHERE LOWER(Text) Like LOWER($query) ORDER BY Knum");
+        const stmt = db.prepare(`
+            SELECT knum,
+                   text,
+                   title
+            FROM   line
+                   JOIN morsel
+                     ON ( line.morselid = morsel.morselid )
+                   JOIN book
+                     ON ( morsel.bookid = book.bookid )
+            WHERE  Lower(text) LIKE Lower($query)
+            UNION ALL
+            SELECT knum,
+                   text,
+                   title
+            FROM   region
+                   JOIN morsel
+                     ON ( region.morselid = morsel.morselid )
+                   JOIN book
+                     ON ( morsel.bookid = book.bookid )
+            WHERE  Lower(text) LIKE Lower($query)
+            ORDER  BY knum 
+        `);
         stmt.bind({ $query: `%${text}%` });
         const rows = [];
         while (stmt.step()) {
@@ -64,8 +85,7 @@
 </style>
 
 <body>
-    <p>Try searching for "bald" or "खलभयं". Not yet implemented: searching for "खल्वाटो" (searching in regions' OCR) or
-        "khala" (transliteration).</p>
+    <p>Try searching for "bald" or "खल्वाट". (Note: OCR errors.)</p>
     <input>
     <div id="results">
     </div>
