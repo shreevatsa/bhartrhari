@@ -10,13 +10,12 @@
     const db = new SQL.Database(new Uint8Array(buf));
 
     function query(text) {
-        const stmt = db.prepare("SELECT * FROM Line JOIN Morsel ON (Line.MorselId = Morsel.MorselId) JOIN Book ON (Morsel.BookId = Book.BookId) WHERE LOWER(Text) Like LOWER($query)");
+        const stmt = db.prepare("SELECT * FROM Line JOIN Morsel ON (Line.MorselId = Morsel.MorselId) JOIN Book ON (Morsel.BookId = Book.BookId) WHERE LOWER(Text) Like LOWER($query) ORDER BY Knum");
         stmt.bind({ $query: `%${text}%` });
         const rows = [];
         while (stmt.step()) {
             const row = stmt.getAsObject();
             rows.push(row);
-            // console.log(row.Knum, row.Title, row.Text);
         }
         return rows;
     }
@@ -46,8 +45,8 @@
             const td = tr.querySelectorAll('td');
             console.log(td);
             td[0].textContent = row.Knum;
-            td[1].textContent = row.Title;
-            td[2].textContent = row.Text;
+            td[1].textContent = row.Text;
+            td[2].textContent = row.Title;
             console.log(tr);
             tbody.appendChild(tr);
         }
@@ -56,8 +55,19 @@
 
     input.addEventListener('input', queryFromInput);
 </script>
+<style>
+    table,
+    th,
+    td {
+        border: 1px dotted black;
+        border-collapse: collapse;
+    }
+
+</style>
 
 <body>
+    <p>Try searching for "bald" or "खलभयं". Not yet implemented: searching for "खल्वाटो" (searching in regions) or
+        "khala" (transliteration).</p>
     <input>
     <div id="results">
     </div>
@@ -67,8 +77,8 @@
             <thead>
                 <tr>
                     <td>Knum</td>
-                    <td>Book title</td>
                     <td>Line</td>
+                    <td>Book title</td>
                 </tr>
             </thead>
             <tbody>
