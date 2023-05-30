@@ -22,13 +22,16 @@
         <li><a href="{{title}}.html">{{title}}</a></li>
         {% endfor %}
     </ul>
-    <p>You could also browse the complete list:</p>
+    <p>You could also browse the complete list of poems (verses):</p>
     <ul>
-        {% for k in knums %}
-        <li><a href="{{k}}.html">{{k}}</a></li>
-        {% endfor %}
+        <span style="font-family: monospace; font-size: larger;">
+            {% for k in knums %}
+            <a href="{{k}}.html">{{k}}</a>
+            {% endfor %}
+        </span>
     </ul>
-    <p>A third way to navigate would be <a href="search.html">search</a>, which is still rudimentary.</p>
+    <p>A third way to navigate would be <a href="search.html">search</a>, which is still rudimentary:</p>
+    <iframe src="search.html" width="100%" height="500"></iframe>
 </body>
 
 </html>
