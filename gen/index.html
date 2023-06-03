@@ -11,11 +11,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bhartṛhari poems</title>
+    <style>
+        h1 {
+            text-align: center;
+        }
+    </style>
 </head>
 
 <body>
-    <p>This collection of webpages puts together a few translations/collections ("books") of Bhartṛhari's
-        poems.</p>
+    <h1>भर्तृहरिसुभाषितम्</h1>
+    <p>The <b>subhāṣita</b>s (<b>Nīti-śataka</b>, <b>Vairāgya-śataka</b>, <b>Śṛṅgāra-śataka</b>) of <b>Bhartṛhari</b>
+        are some of the most quoted verses from Sanskrit literature. There have been many books containing translations
+        or commentaries of these poems. Each of them has a different subset of the verses, in a different order.
+        <em>What if you could read all these books simultaneously?</em> That is, what if you could easily navigate from
+        any poem in any book to other books’ versions of the same poem?
+    </p>
+
+    <p>This collection of webpages is a start in that direction. It puts together a few translations/collections
+        ("books") of Bhartṛhari's poems:
+    <ul>
+        <li>English verse translations by Charles Henry Tawney and (as part of larger collections) by Arthur W. Ryder,
+            by John Brough, by Paul Elmer More.</li>
+        <li>Editions published in India with translation and notes, by K. T. Telang, by P. Gopinath, by Swami
+            Mādhavānanda.</li>
+        <li>The critical edition by D. D. Kosambi (based on examining ~380 manuscripts), which gives all the variant
+            readings for each verse, and (crucially for us) can be used as a canonical numbering of all Bhartṛhari
+            verses.</li>
+        <li>(TODO/yet to add: The editions/notes by M. R. Kale, the commentaries by Rāmarśi and by Rāmacandra
+            Budhendra, other Sanskrit and Indian-language commentaries, other prose translations, ….)</li>
+    </ul>
+    </p>
     <p>To navigate, start with one of the books below, and click on the "⟷" below any poem that looks interesting:</p>
     <ul>
         {% for title in books %}
@@ -30,8 +55,9 @@
             {% endfor %}
         </span>
     </ul>
-    <p>A third way to navigate would be <a href="search.html">search</a>, which is still rudimentary:</p>
-    <iframe src="search.html" width="100%" height="500"></iframe>
+    <p>A third way to navigate would be <a href="search.html">search</a>.</p>
+    <p style="margin-top: 2em;">You can use <a href="https://github.com/shreevatsa/bhartrhari">the GitHub repository</a>
+        to report issues or other feedback, or to see the source code and data.</p>
 </body>
 
 </html>
