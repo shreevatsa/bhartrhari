@@ -49,7 +49,7 @@ db(con,
 db(con, 
    """
    CREATE TABLE Morsel(
-     BookId,
+     BookId INTEGER,
      MorselId INTEGER PRIMARY KEY,
      Knum,
      FOREIGN KEY(BookId) REFERENCES Book(BookId)
@@ -58,8 +58,8 @@ db(con,
 db(con, 
    """
    CREATE TABLE Line(
-     BookId,
-     MorselId,
+     BookId INTEGER,
+     MorselId INTEGER,
      LineId INTEGER PRIMARY KEY,
      Text,
      Indentation,
@@ -70,8 +70,8 @@ db(con,
 db(con, 
    """
    CREATE TABLE Region(
-     BookId,
-     MorselId,
+     BookId INTEGER,
+     MorselId INTEGER,
      RegionId INTEGER PRIMARY KEY,
      RegionType,
      Name,
