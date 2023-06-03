@@ -84,7 +84,7 @@ db(con,
      """)
 
 # Manually add books in preferred order.
-for Title in ['Ryder', 'Brough', 'Tawney', 'More', 'Mādhavānanda', 'Telang', 'Gopinath1914', 'Gopinath1896', 'Kosambi']:
+for Title in ['Ryder', 'Brough', 'Tawney', 'More', 'Mādhavānanda', 'Telang', 'Gopinath1914', 'Gopinath1896', 'External', 'Kosambi']:
     db(con, "INSERT INTO Book(Title) VALUES(?)", [Title])
 
 
@@ -140,6 +140,19 @@ with open('data/alignment/Madhavananda.csv') as f:
         MorselId = db(con, "INSERT INTO Morsel(BookId, Knum) VALUES(?, ?)", (BookId, Knum))
         for (Text, Indentation) in Lines(text):
             db(con, "INSERT INTO Line(BookId, MorselId,   Text, Indentation) VALUES(?, ?, ?, ?)", (BookId, MorselId,   Text, Indentation))
+
+BookId = get_book(con, 'External')
+with open('data/alignment/External.csv') as f:
+    for row in csv.reader(f):
+        (text, Knum) = row
+        try:
+            Knum = f'K{int(Knum[1:]):03}'
+        except:
+            continue
+        MorselId = db(con, "INSERT INTO Morsel(BookId, Knum) VALUES(?, ?)", (BookId, Knum))
+        for (Text, Indentation) in Lines(text):
+            db(con, "INSERT INTO Line(BookId, MorselId,   Text, Indentation) VALUES(?, ?, ?, ?)", (BookId, MorselId,   Text, Indentation))
+
 
 BookId1 = get_book(con, 'Gopinath1914')
 BookId2 = get_book(con, 'Gopinath1896')

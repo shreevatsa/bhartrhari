@@ -32,6 +32,7 @@ def get_book(con, Title):
     assert len(rows) == 1
     return rows[0][0]
 kBookId = get_book(con, 'Kosambi')
+externalBookId = get_book(con, 'External')
 
 # Index
 # SELECT DISTINCT knum FROM Morsel; -- ORDER BY number of Morsel desc.
@@ -48,7 +49,7 @@ for k in knums:
 # SELECT Title FROM Book;
 open('web/index.html', 'w').write(env.get_template('gen/index.html').render(
     verses = verses,
-    books = [Title for (Title,) in con.execute('SELECT Title FROM Book')]
+    books = [Title for (Title,) in con.execute('SELECT Title FROM Book WHERE BookId != ?', [externalBookId])]
 ))
 
 def db1(con, sql, *args):
@@ -80,6 +81,7 @@ print('End')
 
 # A page for each book.
 for (BookId, Title) in con.execute('SELECT * FROM Book'):
+    if BookId == externalBookId: continue
     print(f'Making page for {Title}')
     # SELECT * FROM Morsel WHERE BookId=?
     morsel_ids = con.execute('SELECT MorselId FROM Morsel WHERE BookId = ?', [BookId])
