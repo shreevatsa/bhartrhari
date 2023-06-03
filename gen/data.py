@@ -39,10 +39,49 @@ def get_book(con, Title):
 # Line:   (BookId, MorselId, LineId,   Text, Indentation)
 # Region: (BookId, MorselId, RegionId,   RegionType, Name, ImageUrl, PageUrl, Text)
 con = sqlite3.connect("data.db")
-db(con, "CREATE TABLE Book(BookId INTEGER PRIMARY KEY, Title)")
-db(con, "CREATE TABLE Morsel(BookId, MorselId INTEGER PRIMARY KEY,   Knum)")
-db(con, "CREATE TABLE Line(BookId, MorselId, LineId INTEGER PRIMARY KEY,   Text, Indentation)")
-db(con, "CREATE TABLE Region(BookId, MorselId, RegionId INTEGER PRIMARY KEY,   RegionType, Name, ImageUrl, PageUrl, Text)")
+db(con, 
+   """
+   CREATE TABLE Book(
+     BookId INTEGER PRIMARY KEY,
+     Title
+   )
+   """)
+db(con, 
+   """
+   CREATE TABLE Morsel(
+     BookId,
+     MorselId INTEGER PRIMARY KEY,
+     Knum,
+     FOREIGN KEY(BookId) REFERENCES Book(BookId)
+   )
+   """)
+db(con, 
+   """
+   CREATE TABLE Line(
+     BookId,
+     MorselId,
+     LineId INTEGER PRIMARY KEY,
+     Text,
+     Indentation,
+     FOREIGN KEY(BookId) REFERENCES Book(BookId),
+     FOREIGN KEY(MorselId) REFERENCES Morsel(MorselId)
+   )
+   """)
+db(con, 
+   """
+   CREATE TABLE Region(
+     BookId,
+     MorselId,
+     RegionId INTEGER PRIMARY KEY,
+     RegionType,
+     Name,
+     ImageUrl,
+     PageUrl,
+     Text,
+     FOREIGN KEY(BookId) REFERENCES Book(BookId),
+     FOREIGN KEY(MorselId) REFERENCES Morsel(MorselId)
+     )
+     """)
 
 # Manually add books in preferred order.
 for Title in ['Ryder', 'Brough', 'Tawney', 'Mādhavānanda', 'Telang', 'Gopinath1914', 'Gopinath1896', 'Kosambi']:
