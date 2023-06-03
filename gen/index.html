@@ -49,11 +49,13 @@
     </ul>
     <p>A second way to navigate would be <a href="search.html">search</a>.</p>
     <p>You could also browse the complete list of poems (verses):</p>
-    <ul>
-        {% for (k, text) in verses %}
-        <li style="margin-top: 1ex;"><a href="{{k}}.html">{{k}}</a> {{text}}</li>
-        {% endfor %}
-    </ul>
+    <div style="max-height: 30em; overflow-y: scroll; border: 2px solid blue; border-radius: 30px;">
+        <ul>
+            {% for (k, text) in verses %}
+            <li style="margin-top: 1ex;"><a href="{{k}}.html">{{k}}</a> {{text}}</li>
+            {% endfor %}
+        </ul>
+    </div>
     <p style="margin-top: 2em;">You can use <a href="https://github.com/shreevatsa/bhartrhari">the GitHub repository</a>
         to report issues or other feedback, or to see the source code and data.</p>
 </body>

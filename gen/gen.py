@@ -35,7 +35,7 @@ kBookId = get_book(con, 'Kosambi')
 
 # Index
 # SELECT DISTINCT knum FROM Morsel; -- ORDER BY number of Morsel desc.
-knums = [knum for (knum,) in con.execute('SELECT DISTINCT knum FROM Morsel ORDER BY 1') if knum is not None]
+knums = [knum for (knum, count) in con.execute('SELECT knum, COUNT(*) FROM Morsel GROUP BY 1 ORDER BY 2 DESC, 1 ASC') if knum is not None]
 verses = []
 # TODO: n+1 query; change if moving away from SQLite.
 for k in knums:
