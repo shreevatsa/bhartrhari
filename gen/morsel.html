@@ -27,6 +27,8 @@
         </div>
         {% endfor %}
         {% else %}
+        {% set problem = "Morsel without lines or regions:" %}
+        {{problem|debug}}
         {{morsel|debug}}
         {% endif %}
         {% if linkBook == False %}

@@ -84,7 +84,7 @@ db(con,
      """)
 
 # Manually add books in preferred order.
-for Title in ['Ryder', 'Brough', 'Tawney', 'Mādhavānanda', 'Telang', 'Gopinath1914', 'Gopinath1896', 'Kosambi']:
+for Title in ['Ryder', 'Brough', 'Tawney', 'More', 'Mādhavānanda', 'Telang', 'Gopinath1914', 'Gopinath1896', 'Kosambi']:
     db(con, "INSERT INTO Book(Title) VALUES(?)", [Title])
 
 
@@ -110,6 +110,20 @@ with open('data/alignment/Brough.csv') as f:
             Knum = kosambi
         except:
             Knum = None
+        MorselId = db(con, "INSERT INTO Morsel(BookId, Knum) VALUES(?, ?)", (BookId, Knum))
+        for (Text, Indentation) in Lines(text):
+            db(con, "INSERT INTO Line(BookId, MorselId,   Text, Indentation) VALUES(?, ?, ?, ?)", (BookId, MorselId,   Text, Indentation))
+
+BookId = get_book(con, 'More')
+with open('data/alignment/More.csv') as f:
+    for row in csv.reader(f):
+        (text, kosambi, comments) = row
+        try:
+            kosambi = f'K{int(kosambi[1:]):03}'
+            Knum = kosambi
+        except:
+            Knum = None
+        if not Knum: continue # Keep only the Bhartṛhari verses.
         MorselId = db(con, "INSERT INTO Morsel(BookId, Knum) VALUES(?, ?)", (BookId, Knum))
         for (Text, Indentation) in Lines(text):
             db(con, "INSERT INTO Line(BookId, MorselId,   Text, Indentation) VALUES(?, ?, ?, ?)", (BookId, MorselId,   Text, Indentation))
@@ -169,7 +183,6 @@ with open('data/alignment/Telang-Tawney.csv') as f:
         if telang:
             MorselId = db(con, "INSERT INTO Morsel(BookId, Knum) VALUES(?, ?)", (BookId2, Knum))
             # TODO: Some Morsels get no Regions, because of collisions in Region names: the *next* MorselId (for next region) overwrites this.
-            if MorselId in [960, 992, 1022, 1095, 1114, 1137, 1156, 1171, 1191, 1497]: print(f'Morsel {MorselId} without lines or regions: row is', row)
             morsel_for_regionname[telang] = MorselId
 
 BookId = BookId2
