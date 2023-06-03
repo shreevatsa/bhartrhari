@@ -27,12 +27,26 @@ env.filters['nonempty'] = nonempty
 
 con = sqlite3.connect("file:data.db?mode=ro", uri=True)
 
+def get_book(con, Title):
+    rows = con.execute('SELECT BookId FROM Book WHERE Title = ?', [Title]).fetchall()
+    assert len(rows) == 1
+    return rows[0][0]
+kBookId = get_book(con, 'Kosambi')
+
 # Index
 # SELECT DISTINCT knum FROM Morsel; -- ORDER BY number of Morsel desc.
-knums = [knum for (knum, count) in con.execute('SELECT knum, COUNT(*) FROM Morsel GROUP BY 1 ORDER BY 2 DESC') if knum is not None]
+knums = [knum for (knum,) in con.execute('SELECT DISTINCT knum FROM Morsel ORDER BY 1') if knum is not None]
+verses = []
+for k in knums:
+    text = ' '.join(text for (text,) in con.execute(
+        """
+            SELECT Text FROM Region JOIN Morsel ON Region.MorselId = Morsel.MorselId 
+            WHERE Region.RegionType = 'verse' AND Region.BookId = ? AND Knum = ?
+        """, [kBookId, k]))
+    verses.append((k, text))
 # SELECT Title FROM Book;
 open('web/index.html', 'w').write(env.get_template('gen/index.html').render(
-    knums = sorted(knums),
+    verses = verses,
     books = [Title for (Title,) in con.execute('SELECT Title FROM Book')]
 ))
 
