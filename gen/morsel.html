@@ -6,7 +6,7 @@
         {% if 'lines' in morsel and morsel.lines %}
         <div class="lines">
             {% for line in morsel.lines %}
-            <span class="line{% if line.indentation > 1 %} indented{% endif %}">{{ line.text }}</span>
+            <span class="line">{{"&emsp;&emsp;"|safe * line.indentation}}{{ line.text }}</span>
             {% endfor %}
         </div>
         {% elif 'regions' in morsel and morsel.regions %}

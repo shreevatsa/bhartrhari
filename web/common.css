@@ -31,10 +31,6 @@ body {
     min-height: 1em;
 }
 
-.translation .line.indented {
-    text-indent: -3em;
-}
-
 .translation h3 {
     font-size: 18px;
     margin-top: 0;
