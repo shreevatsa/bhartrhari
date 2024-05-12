@@ -58,7 +58,7 @@ for (name, types_and_regions) in from_file['regions']:
     print(f'''
     <div class="outer-s">{s}
     <details>
-    <summary>(not proofread)</summary>
+    <summary>Text (not proofread)</summary>
     {t}
     </details>
     </div>

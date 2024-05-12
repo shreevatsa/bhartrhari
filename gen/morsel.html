@@ -17,7 +17,7 @@
             <a href="{{PageUrl}}"><img src="{{ImageUrl}}" class="inner-img"></a>
             {% endfor %}
             <details>
-                <summary>(not proofread)</summary>
+                <summary>Text (not proofread)</summary>
                 {% for (Name, ImageUrl, PageUrl, Text) in regions %}
                 {% for line in Text %}
                 <p>{{line}}</p>
