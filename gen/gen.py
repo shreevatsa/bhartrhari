@@ -93,11 +93,15 @@ for (BookId, Title) in con.execute('SELECT * FROM Book'):
 
 print('Making page for Knums')
 # A page for each Knum.
-for knum in knums:
+for i, knum in enumerate(knums):
     # SELECT MorselId FROM Morsel WHERE Knum=?
     morsel_ids = con.execute('SELECT MorselId FROM Morsel WHERE Knum = ? ORDER BY BookId', [knum])
     morsels_for_knum = [morsels_for_id[morsel_id] for (morsel_id,) in morsel_ids]
+    prev_knum = knums[i - 1] if i > 0 else None
+    next_knum = knums[i + 1] if i < len(knums) - 1 else None
     open(f'web/{knum}.html', 'w').write(env.get_template('gen/knum.html').render(
         Knum = knum,
-        morsels = morsels_for_knum
+        morsels = morsels_for_knum,
+        prev_knum = prev_knum,
+        next_knum = next_knum
     ))
