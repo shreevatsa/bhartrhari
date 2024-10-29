@@ -93,7 +93,7 @@ for (BookId, Title) in con.execute('SELECT * FROM Book'):
 
 print('Making page for Knums')
 # A page for each Knum.
-for i, knum in enumerate(knums):
+for i, knum in enumerate(sorted(knums)):
     # SELECT MorselId FROM Morsel WHERE Knum=?
     morsel_ids = con.execute('SELECT MorselId FROM Morsel WHERE Knum = ? ORDER BY BookId', [knum])
     morsels_for_knum = [morsels_for_id[morsel_id] for (morsel_id,) in morsel_ids]
