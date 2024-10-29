@@ -36,10 +36,26 @@
 
 <body>
     <div class="container">
+        <div class="navigation">
+            {% if prev_knum %}
+            <a href="{{ prev_knum }}.html">Previous</a>
+            {% endif %}
+            {% if next_knum %}
+            <a href="{{ next_knum }}.html">Next</a>
+            {% endif %}
+        </div>
         {% for morsel in morsels|nonempty %}
         {% set linkBook = True %}
         {% include "gen/morsel.html" %}
         {% endfor %}
+        <div class="navigation">
+            {% if prev_knum %}
+            <a href="{{ prev_knum }}.html">Previous</a>
+            {% endif %}
+            {% if next_knum %}
+            <a href="{{ next_knum }}.html">Next</a>
+            {% endif %}
+        </div>
     </div>
 </body>
 
