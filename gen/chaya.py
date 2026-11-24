@@ -4,7 +4,7 @@ scan-test's webapp/tools/chaya_verses.mjs). Each block has its text and the imag
 (cut by gen/chaya_crops.py), with the page of the book it is on; the images and the books are on Cloudflare R2.
 
     Block:      (BookId, MorselId, BlockId,   Role, Text)
-    BlockImage: (BlockId, ImageId,   ImageUrl, PageUrl)
+    BlockImage: (BlockId, ImageId,   ImageUrl, PageUrl, Width, Height)
 """
 import json
 import os
@@ -12,6 +12,17 @@ import os
 # Where the images and the books are: the R2 bucket's public URL; for a local look, BHARTRHARI_SCANS=../scans (the
 # images only) with the site served from the repository's root.
 SCANS = os.environ.get('BHARTRHARI_SCANS', 'https://pub-39d5e387e3434cada5b9f57c4e120bb9.r2.dev')
+
+
+MARGIN = 0.006  # round each region's box, of the page's width, in its image (gen/chaya_crops.py)
+
+
+def crop_box(region):
+    """The box of a region's image in the pixels of its page: the region's box with a small margin, within the page."""
+    width, height = region['width'], region['height']
+    margin = MARGIN * width
+    x0, y0, x1, y1 = region['box']
+    return (max(0, round(x0 - margin)), max(0, round(y0 - margin)), min(width, round(x1 + margin)), min(height, round(y1 + margin)))
 
 
 def image_name(region):
@@ -51,6 +62,8 @@ def create_tables(con):
           ImageId INTEGER PRIMARY KEY,
           ImageUrl,
           PageUrl,
+          Width,
+          Height,
           FOREIGN KEY(BlockId) REFERENCES Block(BlockId)
         )""")
 
@@ -85,5 +98,6 @@ def add_blocks(con, BookId, MorselId, book, verse, pdf=None):
         BlockId = con.execute('INSERT INTO Block(BookId, MorselId, Role, Text) VALUES(?, ?, ?, ?)',
                               (BookId, MorselId, part['role'], part['text'])).lastrowid
         for region in part['regions']:
-            con.execute('INSERT INTO BlockImage(BlockId, ImageUrl, PageUrl) VALUES(?, ?, ?)',
-                        (BlockId, f'{SCANS}/{book}/{image_name(region)}', page_link(book, pdf, region)))
+            x0, y0, x1, y1 = crop_box(region)
+            con.execute('INSERT INTO BlockImage(BlockId, ImageUrl, PageUrl, Width, Height) VALUES(?, ?, ?, ?, ?)',
+                        (BlockId, f'{SCANS}/{book}/{image_name(region)}', page_link(book, pdf, region), x1 - x0, y1 - y0))

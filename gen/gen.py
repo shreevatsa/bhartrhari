@@ -78,7 +78,7 @@ for (BookId, MorselId,  Knum) in con.execute('SELECT * FROM Morsel'):
     # The blocks of a book made with scan-test (gen/chaya.py), each with its text and its images.
     blocks = []
     for (BlockId, Role, Text) in con.execute('SELECT BlockId, Role, Text FROM Block WHERE MorselId = ? ORDER BY BlockId', [MorselId]):
-        images = con.execute('SELECT ImageUrl, PageUrl FROM BlockImage WHERE BlockId = ? ORDER BY ImageId', [BlockId]).fetchall()
+        images = con.execute('SELECT ImageUrl, PageUrl, Width, Height FROM BlockImage WHERE BlockId = ? ORDER BY ImageId', [BlockId]).fetchall()
         blocks.append({'role': Role, 'label': ROLE_LABELS.get(Role, Role.replace('_', ' ')), 'lines': Text.splitlines(), 'images': images})
     morsels_for_id[MorselId] = {
         'MorselId': MorselId,

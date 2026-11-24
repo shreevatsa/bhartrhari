@@ -123,9 +123,11 @@ img.page-image {
     display: flex;
     align-items: flex-start;
     gap: 0.3em;
+    position: relative;
 }
 .block-scan img {
     max-width: calc(100% - 1.8em);
+    height: auto;
     border: 1px solid #ddd;
     border-radius: 3px;
     margin: 0.2em 0;
@@ -192,4 +194,19 @@ img.page-image {
 .blocks-tools {
     text-align: right;
     margin: -0.4em 0 0.2em;
+}
+.scan.loading img, .scan.failed img {
+    background: #f2f2f2;
+}
+.scan.loading::after, .scan.failed::after {
+    content: "Loading the scan…";
+    position: absolute;
+    left: 0.8em;
+    top: 0.7em;
+    color: #999;
+    font: 12px system-ui, sans-serif;
+    pointer-events: none;
+}
+.scan.failed::after {
+    content: "The scan could not be loaded.";
 }

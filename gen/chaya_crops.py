@@ -24,9 +24,8 @@ import tempfile
 
 from PIL import Image
 
-from chaya import image_name, kosambi_region
+from chaya import crop_box, image_name, kosambi_region
 
-MARGIN = 0.006  # of the page's width, round each box
 QUALITY = 72
 
 
@@ -59,11 +58,8 @@ def main(verses_path, pdf_path, out_dir):
             subprocess.run(['pdftoppm', '-f', str(page), '-l', str(page), '-scale-to-x', str(width), '-scale-to-y', str(height),
                             '-gray', '-png', '-singlefile', pdf_path, base], check=True)
             with Image.open(base + '.png') as image:
-                margin = MARGIN * width
                 for region in wanted:
-                    x0, y0, x1, y1 = region['box']
-                    box = (max(0, round(x0 - margin)), max(0, round(y0 - margin)), min(width, round(x1 + margin)), min(height, round(y1 + margin)))
-                    image.crop(box).save(os.path.join(target, image_name(region)), 'JPEG', quality=QUALITY, optimize=True)
+                    image.crop(crop_box(region)).save(os.path.join(target, image_name(region)), 'JPEG', quality=QUALITY, optimize=True)
                     made += 1
             os.remove(base + '.png')
     print(f'{book}: {made} images made, {kept} already there, in {target}')
