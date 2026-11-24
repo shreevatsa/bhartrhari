@@ -187,7 +187,9 @@ telang_verses = {verse['key']: verse for verse in chaya.verses('telang')}
 telang_headings = {name: '\n'.join('\n'.join(region['text']) for regions in types.values() for region in regions)
                    for (name, types) in json.load(open('data/regions/telang-regions-out.json'))['regions'] if name.endswith('~H')}
 with open('data/alignment/Telang-Tawney.csv') as f:
-    for row in csv.reader(f):
+    rows = csv.reader(f)
+    next(rows)   # the header: Telang,,Kosambi,Tawney
+    for row in rows:
         (telang, snippet, kosambi, tawney) = row
         try:
             kosambi = f'K{int(kosambi):03}'

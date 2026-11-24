@@ -6,3 +6,11 @@ command = "make"
 for = "/*"
 [headers.values]
 Access-Control-Allow-Origin = "*"
+
+# The site as it was before the books made with scan-test (2026-11): the `classic` branch, which Netlify deploys too,
+# at /old/ (shreevatsa.net/bhartrhari/old/web/).
+[[redirects]]
+from = "/old/*"
+to = "https://classic--calm-gaufre-6360e8.netlify.app/:splat"
+status = 200
+force = true
