@@ -55,6 +55,26 @@ def create_tables(con):
         )""")
 
 
+_page_sizes = {}
+
+
+def page_link(book, pdf, region):
+    """The link to a region's place on its page of the book's PDF: the page, a zoom at which the region about fills a
+    viewer's width, and the region's top left corner (a little before it), in the page's points from its bottom left
+    (PDF open parameters: Chrome, Edge and Firefox follow them; Safari opens the page). The page sizes come from
+    data/chaya/<book>-pages.json (gen/pdf_pages.py)."""
+    if book not in _page_sizes:
+        _page_sizes[book] = json.load(open(f'data/chaya/{book}-pages.json'))
+    page = region['pdf_page']
+    width, height = _page_sizes[book][str(page)]
+    sx, sy = width / region['width'], height / region['height']
+    x0, y0, x1, y1 = region['box']
+    margin = 12
+    left, top = max(0, x0 * sx - margin), min(height, height - y0 * sy + margin)
+    zoom = max(50, min(400, round(100 * 760 / (((x1 - x0) * sx + 2 * margin) * 96 / 72))))
+    return f'{SCANS}/books/{pdf}#page={page}&zoom={zoom},{round(left)},{round(top)}'
+
+
 def add_blocks(con, BookId, MorselId, book, verse, pdf=None):
     """A verse's blocks, in order, each with its images, for the morsel; `pdf`, the book's file on R2 under books/
     (by default <book>.chaya.pdf)."""
@@ -66,4 +86,4 @@ def add_blocks(con, BookId, MorselId, book, verse, pdf=None):
                               (BookId, MorselId, part['role'], part['text'])).lastrowid
         for region in part['regions']:
             con.execute('INSERT INTO BlockImage(BlockId, ImageUrl, PageUrl) VALUES(?, ?, ?)',
-                        (BlockId, f'{SCANS}/{book}/{image_name(region)}', f"{SCANS}/books/{pdf}#page={region['pdf_page']}"))
+                        (BlockId, f'{SCANS}/{book}/{image_name(region)}', page_link(book, pdf, region)))

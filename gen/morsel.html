@@ -11,10 +11,10 @@
         </div>
         {% elif morsel.blocks %}
         <div class="blocks">
-            <div class="blocks-tools"><button class="scan-all" onclick="toggleScans(this)" title="Show the scans of all these blocks (remembered)">scans</button></div>
+            <div class="blocks-tools">{% set all = True %}{% include "gen/view-switch.html" %}</div>
             {% for block in morsel.blocks %}
             <div class="block block-{{block.role}}">
-                {% if block.images %}<button class="scan-toggle" onclick="toggleScan(this)" title="Show the scan">▣</button>{% endif %}
+                {% if block.images %}{% set all = False %}{% include "gen/view-switch.html" %}{% endif %}
                 {% if block.label %}<h4>{{block.label}}</h4>{% endif %}
                 <div class="block-text lines">
                     {% for line in block.lines %}

@@ -87,7 +87,7 @@ img.page-image {
 .block {
     position: relative;
     margin: 0.6em 0;
-    padding-right: 2em;
+    padding-right: 4.5em;
 }
 .block h4 {
     margin: 0.2em 0;
@@ -145,28 +145,51 @@ img.page-image {
 .page-link:hover {
     opacity: 1;
 }
-button.scan-toggle, button.scan-all {
+.view-switch {
+    display: inline-flex;
+    align-items: center;
     border: 1px solid #ccc;
+    border-radius: 4px;
+    overflow: hidden;
     background: #fafafa;
-    border-radius: 3px;
-    color: #555;
-    cursor: pointer;
-    font-size: 0.8em;
+    font-family: system-ui, sans-serif;
+    font-size: 11px;
+    line-height: 1;
 }
-button.scan-toggle {
+.view-switch button {
+    border: none;
+    background: none;
+    color: #888;
+    cursor: pointer;
+    padding: 3px 5px;
+    height: 20px;
+    font: inherit;
+}
+.view-switch button + button {
+    border-left: 1px solid #ccc;
+}
+.view-switch button svg {
+    width: 13px;
+    height: 13px;
+    vertical-align: middle;
+}
+.view-switch button[aria-pressed="true"] {
+    background: #e8f0fe;
+    color: #1d4ed8;
+}
+.view-switch .view-label {
+    padding: 0 5px 0 6px;
+    color: #888;
+}
+.block > .view-switch {
     position: absolute;
     right: 0;
-    top: 0.2em;
-    padding: 0 0.3em;
+    top: 0.15em;
+}
+.view-switch.all {
+    font-size: 12px;
 }
 .blocks-tools {
     text-align: right;
-    margin-top: -0.5em;
-}
-button.scan-all {
-    padding: 0.1em 0.5em;
-}
-.blocks.all-scans button.scan-all, .block.show-scan button.scan-toggle {
-    background: #e8f0fe;
-    border-color: #3B82F6;
+    margin: -0.4em 0 0.2em;
 }

@@ -1,0 +1,6 @@
+{#- A switch between a block's text and its scan; with `all`, for every block of the entry (common.js). -#}
+<span class="view-switch{% if all %} all{% endif %}" role="group" aria-label="{% if all %}Show all as{% else %}Show as{% endif %}">
+    {%- if all %}<span class="view-label">all</span>{% endif -%}
+    <button class="v-text" aria-pressed="true" onclick="showAs(this, 'text')" title="{% if all %}All as text{% else %}As text{% endif %}">Aa</button>
+    {#- -#}<button class="v-scan" aria-pressed="false" onclick="showAs(this, 'scan')" title="{% if all %}All as printed (scans){% else %}As printed (the scan){% endif %}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2.5" width="12" height="11" rx="1"/><path d="M2.5 11l3.5-3.5 2.5 2.5 2-2 3 3"/><circle cx="10.5" cy="5.8" r="1"/></svg></button>
+</span>

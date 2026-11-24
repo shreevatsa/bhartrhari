@@ -5,8 +5,8 @@
 # login). Each file uploaded is noted in
 # scans/uploaded.txt, and a run skips those: run it again to finish an interrupted upload, or after adding images.
 #
-#   gen/upload_scans.sh BUCKET [BOOK=PATH.chaya.pdf ...]
-#   e.g. gen/upload_scans.sh bhartrhari-scans telang=~/w/scan-test/outputs/books/telang-dli.chaya.pdf
+#   gen/upload_scans.sh BUCKET [BOOK=PATH.chaya.pdf | NAME.pdf=PATH.pdf ...]
+#   e.g. gen/upload_scans.sh bhartrhari-scans telang=~/w/scan-test/outputs/books/telang-dli.chaya.pdf kosambi.pdf=data/images/Kosambi-Epigrams.pdf
 set -euo pipefail
 cd "$(dirname "$0")/.."
 bucket=$1; shift
@@ -18,8 +18,9 @@ upload() {   # key file content-type
 export -f upload
 export bucket WRANGLER
 for spec in "$@"; do
-  book=${spec%%=*}; file=${spec#*=}
-  grep -qx "books/$book.chaya.pdf" scans/uploaded.txt || upload "books/$book.chaya.pdf" "$file" application/pdf
+  name=${spec%%=*}; file=${spec#*=}
+  case "$name" in *.pdf) ;; *) name="$name.chaya.pdf";; esac   # a book made with scan-test: <book>.chaya.pdf
+  grep -qx "books/$name" scans/uploaded.txt || upload "books/$name" "$file" application/pdf
 done
 find scans -mindepth 2 -name '*.jpg' | sed 's|^scans/||' | sort | comm -23 - <(sort scans/uploaded.txt) \
   | xargs -P 8 -I{} bash -c 'upload "$1" "scans/$1" image/jpeg' _ {}
