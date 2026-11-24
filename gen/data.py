@@ -2,6 +2,8 @@ import csv
 import json
 import sqlite3
 
+import chaya
+
 def Lines(text: str):
     """Turns a text block into a sequence of (text, indentation) pairs."""
     # Ignore leading and trailing blank lines
@@ -83,8 +85,10 @@ db(con,
      )
      """)
 
+chaya.create_tables(con)
+
 # Manually add books in preferred order.
-for Title in ['Ryder', 'Brough', 'Tawney', 'More', 'Mādhavānanda', 'Telang', 'Gopinath1914', 'Gopinath1896', 'External', 'Kosambi']:
+for Title in ['Ryder', 'Brough', 'Tawney', 'More', 'Mādhavānanda', 'Telang', 'Kale', 'Gopinath1914', 'Gopinath1896', 'External', 'Kosambi']:
     db(con, "INSERT INTO Book(Title) VALUES(?)", [Title])
 
 
@@ -154,33 +158,34 @@ with open('data/alignment/External.csv') as f:
             db(con, "INSERT INTO Line(BookId, MorselId,   Text, Indentation) VALUES(?, ?, ?, ?)", (BookId, MorselId,   Text, Indentation))
 
 
-BookId1 = get_book(con, 'Gopinath1914')
-BookId2 = get_book(con, 'Gopinath1896')
-imagesPrefix = '../data/images/'
-with open('data/alignment/Gopinath.csv') as f:
-    for row in csv.reader(f):
-        (comment, gopinath_num, gopinath1896_img, gopinath1914_img, kosambi) = row
-        try:
-            kosambi = f'K{int(kosambi):03}'
-            Knum = kosambi
-        except:
-            Knum = None
-        if comment == '(continued)': # Happens in two places. Reuse MorselId.
-            MorselId1 = con.execute('SELECT MAX(MorselId) FROM Morsel WHERE BookId = ?', [BookId1]).fetchall()[0][0]
-            MorselId2 = con.execute('SELECT MAX(MorselId) FROM Morsel WHERE BookId = ?', [BookId2]).fetchall()[0][0]
-        else:
-            MorselId1 = db(con, "INSERT INTO Morsel(BookId, Knum) VALUES(?, ?)", (BookId1, Knum))
-            MorselId2 = db(con, "INSERT INTO Morsel(BookId, Knum) VALUES(?, ?)", (BookId2, Knum))
-        # Region: (BookId, MorselId, RegionId,   RegionType, Name, ImageUrl, PageUrl, Text)
-        db(con, "INSERT INTO Region(BookId, MorselId,   RegionType, Name, ImageUrl, PageUrl, Text) VALUES(?, ?, ?, ?, ?, ?, ?)",
-                                   (BookId1, MorselId1,   'All', '', imagesPrefix + gopinath1914_img, imagesPrefix + gopinath1914_img, ''))
-        db(con, "INSERT INTO Region(BookId, MorselId,   RegionType, Name, ImageUrl, PageUrl, Text) VALUES(?, ?, ?, ?, ?, ?, ?)",
-                                   (BookId2, MorselId2,   'All', '', imagesPrefix + gopinath1896_img, imagesPrefix + gopinath1896_img, ''))
+# Gopinath's two editions, from their verse exports (gen/chaya.py). The CSV numbers the edition's verses through its
+# three śatakas, with rows for pages that are not verses (a śataka's title page, a blank page, a verse going on): the
+# verse rows, in order, are the export's keys in śataka order (N, S, V) and number.
+gopinath_rows = [row for row in csv.reader(open('data/alignment/Gopinath.csv'))][1:]
+gopinath_knums = [f'K{int(kosambi):03}' if kosambi.strip().isdigit() else None
+                  for (comment, gopinath_num, img1896, img1914, kosambi) in gopinath_rows if not (comment and not kosambi)]
+for (Title, book) in [('Gopinath1914', 'gopinath-1914'), ('Gopinath1896', 'gopinath-1896')]:
+    BookId = get_book(con, Title)
+    verses = chaya.verses(book)
+    letters = []
+    for verse in verses:
+        if verse['key'][0] not in letters: letters.append(verse['key'][0])
+    offset, total = {}, 0
+    for letter in letters:
+        offset[letter] = total
+        total += max(int(verse['key'][1:]) for verse in verses if verse['key'][0] == letter)
+    assert total == len(gopinath_knums), (book, total, len(gopinath_knums))
+    for verse in sorted(verses, key=lambda verse: (letters.index(verse['key'][0]), int(verse['key'][1:]))):
+        Knum = gopinath_knums[offset[verse['key'][0]] + int(verse['key'][1:]) - 1]
+        MorselId = db(con, "INSERT INTO Morsel(BookId, Knum) VALUES(?, ?)", (BookId, Knum))
+        chaya.add_blocks(con, BookId, MorselId, book, verse)
 
 
 BookId1 = get_book(con, 'Tawney')
 BookId2 = get_book(con, 'Telang')
-morsel_for_regionname = {}
+telang_verses = {verse['key']: verse for verse in chaya.verses('telang')}
+telang_headings = {name: '\n'.join('\n'.join(region['text']) for regions in types.values() for region in regions)
+                   for (name, types) in json.load(open('data/regions/telang-regions-out.json'))['regions'] if name.endswith('~H')}
 with open('data/alignment/Telang-Tawney.csv') as f:
     for row in csv.reader(f):
         (telang, snippet, kosambi, tawney) = row
@@ -195,65 +200,35 @@ with open('data/alignment/Telang-Tawney.csv') as f:
                 db(con, "INSERT INTO Line(BookId, MorselId,   Text, Indentation) VALUES(?, ?, ?, ?)", (BookId1, MorselId,   Text, Indentation))
         if telang:
             MorselId = db(con, "INSERT INTO Morsel(BookId, Knum) VALUES(?, ?)", (BookId2, Knum))
-            # TODO: Some Morsels get no Regions, because of collisions in Region names: the *next* MorselId (for next region) overwrites this.
-            morsel_for_regionname[telang] = MorselId
+            if telang in telang_verses:
+                chaya.add_blocks(con, BookId2, MorselId, 'telang', telang_verses[telang])
+            else:
+                # A heading ("N014~H"): its text, as the region finder read it.
+                for (Text, Indentation) in Lines(telang_headings.get(telang, '')):
+                    db(con, "INSERT INTO Line(BookId, MorselId,   Text, Indentation) VALUES(?, ?, ?, ?)", (BookId2, MorselId,   Text, Indentation))
 
-BookId = BookId2
-with open('data/regions/telang-regions-out.json') as file:
-    t = json.load(file)
-    totWidth = t['totWidth']
-    totHeight = t['totHeight']
-    imageUrlPrefix = t['imageUrlPrefix'] + '_202305'
-    pageUrlPrefix = t['pageUrlPrefix'] + '_202305'
-    for (region_name, types_and_regions) in t['regions']:
-        for (type, regions) in types_and_regions.items():
-            for region in regions:
-                n = region['slug'] - 1
-                x = int(region['xmin'] / totWidth * 100) / 100
-                y = int(region['ymin'] / totHeight * 1000) / 1000
-                w = (int(region['width'] / totWidth * 100) + 2) / 100
-                h = (int(region['height'] / totHeight * 1000) + 5) / 1000
-                ImageUrl = f'{imageUrlPrefix}/page/n{n}_x{x}_y{y}_w{w}_h{h}.jpg'
-                PageUrl = f'{pageUrlPrefix}/page/n{n}/mode/2up'
-                try:
-                    MorselId = morsel_for_regionname[region_name]
-                except KeyError:
-                    print('Region without morsel:', region)
-                    if region_name != 'V156~H': raise
-                # Region: (BookId, MorselId, RegionId,   RegionType, Name, ImageUrl, PageUrl, Text)
-                assert isinstance(region['text'], list)
-                assert all(isinstance(line, str) for line in region['text'])
-                text = '\n'.join(region['text'])
-                db(con, "INSERT INTO Region(BookId, MorselId,   RegionType, Name, ImageUrl, PageUrl, Text) VALUES(?, ?, ?, ?, ?, ?, ?)",
-                                           (BookId, MorselId,   type, region_name, ImageUrl, PageUrl, text))
-morsel_for_regionname = {}
+# Kale's verses, from its verse export, with their Kosambi numbers from data/alignment/Kale.csv (gen/align_kale.py).
+BookId = get_book(con, 'Kale')
+kale_knums = {row['Kale']: row['Kosambi'] for row in csv.DictReader(open('data/alignment/Kale.csv'))}
+for verse in chaya.verses('kale-1913'):
+    MorselId = db(con, "INSERT INTO Morsel(BookId, Knum) VALUES(?, ?)", (BookId, kale_knums.get(verse['key']) or None))
+    chaya.add_blocks(con, BookId, MorselId, 'kale-1913', verse)
 
+# Kosambi's edition: each verse with its blocks (the verse, its footnotes), from the regions marked on its page images
+# (data/regions/kosambi-regions-out.json), with their text; the images are cut from the edition's PDF (archive.org's)
+# by gen/chaya_crops.py, and are on R2 with the PDF (gen/chaya.py).
 BookId = get_book(con, 'Kosambi')
 with open('data/regions/kosambi-regions-out.json') as file:
     t = json.load(file)
-    totWidth = t['totWidth']
-    totHeight = t['totHeight']
-    imageUrlPrefix = t['imageUrlPrefix']
-    pageUrlPrefix = t['pageUrlPrefix']
     for (region_name, types_and_regions) in t['regions']:
         Knum = 'K' + region_name
-        # Morsel: (BookId, MorselId,   Knum?)
         MorselId = db(con, "INSERT INTO Morsel(BookId, Knum) VALUES(?, ?)", (BookId, Knum))
+        parts = []
         for (type, regions) in types_and_regions.items():
             for region in regions:
-                n = region['page_id'] - 1
-                x = int(region['xmin'] / totWidth * 100) / 100
-                y = int(region['ymin'] / totHeight * 1000) / 1000
-                w = (int(region['width'] / totWidth * 100) + 2) / 100
-                h = (int(region['height'] / totHeight * 1000) + 5) / 1000
-                ImageUrl = f'{imageUrlPrefix}/page/n{n}_x{x}_y{y}_w{w}_h{h}_s4.jpg'
-                PageUrl = f'{pageUrlPrefix}/page/n{n}/mode/2up'
-                # Region: (BookId, MorselId, RegionId,   RegionType, Name, ImageUrl, PageUrl, Text)
-                assert isinstance(region['text'], list)
-                assert all(isinstance(line, str) for line in region['text'])
-                text = '\n'.join(region['text'])
-                db(con, "INSERT INTO Region(BookId, MorselId,   RegionType, Name, ImageUrl, PageUrl, Text) VALUES(?, ?, ?, ?, ?, ?, ?)",
-                                          ((BookId, MorselId,   type, region_name, ImageUrl, PageUrl, text)))
+                assert isinstance(region['text'], list) and all(isinstance(line, str) for line in region['text'])
+                parts.append({'role': type, 'text': '\n'.join(region['text']), 'regions': [chaya.kosambi_region(region, t['totWidth'], t['totHeight'])]})
+        chaya.add_blocks(con, BookId, MorselId, 'kosambi', {'key': Knum, 'parts': parts}, pdf='kosambi.pdf')
 
 con.execute('CREATE INDEX i1 ON Line(MorselId)')
 con.execute('CREATE INDEX i2 ON Region(MorselId)')

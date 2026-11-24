@@ -42,8 +42,8 @@ verses = []
 for k in knums:
     text = ' '.join(text for (text,) in con.execute(
         """
-            SELECT Text FROM Region JOIN Morsel ON Region.MorselId = Morsel.MorselId 
-            WHERE Region.RegionType = 'verse' AND Region.BookId = ? AND Knum = ?
+            SELECT Text FROM Block JOIN Morsel ON Block.MorselId = Morsel.MorselId
+            WHERE Block.Role = 'verse' AND Block.BookId = ? AND Knum = ?
         """, [kBookId, k]))
     verses.append((k, text))
 # SELECT Title FROM Book;
@@ -58,6 +58,11 @@ def db1(con, sql, *args):
     assert len(rows[0]) == 1, rows[0]
     return rows[0][0]
 
+# What a block of a scan-test book is called on the page; a verse, and the paragraphs of a book that does not name
+# its blocks' kinds (Gopinath's translations and explanations), go without.
+ROLE_LABELS = {'verse': '', 'paragraph': '', 'list_item': '', 'group': '', 'follow': '', 'lead_in': 'Introduction',
+               'commentary': 'Commentary', 'translation': 'Translation', 'notes': 'Notes', 'readings': 'Readings', 'footnote': 'Footnote'}
+
 print('Collecting lines and regions for each MorselId')
 morsels_for_id = {}
 for (BookId, MorselId,  Knum) in con.execute('SELECT * FROM Morsel'):
@@ -70,12 +75,18 @@ for (BookId, MorselId,  Knum) in con.execute('SELECT * FROM Morsel'):
     # SELECT * FROM Region WHERE MorselId = ? GROUP BY RegionType
     for (BookId, MorselId, RegionId,   RegionType, Name, ImageUrl, PageUrl, Text) in con.execute('SELECT * FROM Region WHERE MorselId = ?', [MorselId]):
         regions[RegionType].append((Name, ImageUrl, PageUrl, Text.splitlines()))
+    # The blocks of a book made with scan-test (gen/chaya.py), each with its text and its images.
+    blocks = []
+    for (BlockId, Role, Text) in con.execute('SELECT BlockId, Role, Text FROM Block WHERE MorselId = ? ORDER BY BlockId', [MorselId]):
+        images = con.execute('SELECT ImageUrl, PageUrl FROM BlockImage WHERE BlockId = ? ORDER BY ImageId', [BlockId]).fetchall()
+        blocks.append({'role': Role, 'label': ROLE_LABELS.get(Role, Role.replace('_', ' ')), 'lines': Text.splitlines(), 'images': images})
     morsels_for_id[MorselId] = {
         'MorselId': MorselId,
         'BookTitle': BookTitle,
         'Knum': Knum,
         'lines': lines,
-        'regions': regions
+        'regions': regions,
+        'blocks': blocks
     }
 print('End')
 

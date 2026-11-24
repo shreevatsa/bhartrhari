@@ -17,3 +17,7 @@ web/Kosambi.html
 web/index.html
 web/More.html
 data.db
+scans/
+data/images/Kosambi-Epigrams.pdf
+.wrangler/
+gen/__pycache__/

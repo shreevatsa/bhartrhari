@@ -9,6 +9,26 @@
             <span class="line">{{"&emsp;&emsp;"|safe * line.indentation}}{{ line.text }}</span>
             {% endfor %}
         </div>
+        {% elif morsel.blocks %}
+        <div class="blocks">
+            <div class="blocks-tools"><button class="scan-all" onclick="toggleScans(this)" title="Show the scans of all these blocks (remembered)">scans</button></div>
+            {% for block in morsel.blocks %}
+            <div class="block block-{{block.role}}">
+                {% if block.images %}<button class="scan-toggle" onclick="toggleScan(this)" title="Show the scan">▣</button>{% endif %}
+                {% if block.label %}<h4>{{block.label}}</h4>{% endif %}
+                <div class="block-text lines">
+                    {% for line in block.lines %}
+                    <span class="line">{{ line }}</span>
+                    {% endfor %}
+                </div>
+                <div class="block-scan">
+                    {% for (ImageUrl, PageUrl) in block.images %}
+                    <span class="scan"><img src="{{ImageUrl}}" loading="lazy" alt="the block as printed"><a class="page-link" href="{{PageUrl}}" target="_blank" rel="noopener" title="This page in the book (PDF)" aria-label="This page in the book (PDF)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3.5 1.5h6l3 3v10h-9z"/><path d="M9.5 1.5v3h3"/><path d="M5.5 8h5M5.5 10.5h5M5.5 13h3"/></svg></a></span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
         {% elif 'regions' in morsel and morsel.regions %}
         {% for (region_type, regions) in morsel.regions.items()|nonempty %}
         <div class="outer-s">
