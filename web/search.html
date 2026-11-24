@@ -28,9 +28,9 @@
             SELECT knum,
                    text,
                    title
-            FROM   region
+            FROM   block
                    JOIN morsel
-                     ON ( region.morselid = morsel.morselid )
+                     ON ( block.morselid = morsel.morselid )
                    JOIN book
                      ON ( morsel.bookid = book.bookid )
             WHERE  Lower(text) LIKE Lower($query)
