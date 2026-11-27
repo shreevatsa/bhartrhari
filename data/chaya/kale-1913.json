@@ -4228,6 +4228,27 @@
     {
      "role": "footnote",
      "type": "footnote",
+     "number": "2",
+     "text": "२ प्राण।.",
+     "regions": [
+      {
+       "page": "kale-1913-page-014",
+       "pdf_page": 14,
+       "label": "13",
+       "box": [
+        462,
+        1888,
+        587,
+        1933
+       ],
+       "width": 1380,
+       "height": 2113
+      }
+     ]
+    },
+    {
+     "role": "footnote",
+     "type": "footnote",
      "number": "3",
      "text": "३ दीनाम् .",
      "regions": [
@@ -4282,27 +4303,6 @@
         1883,
         1123,
         1935
-       ],
-       "width": 1380,
-       "height": 2113
-      }
-     ]
-    },
-    {
-     "role": "footnote",
-     "type": "footnote",
-     "number": "2",
-     "text": "२ प्राण।.",
-     "regions": [
-      {
-       "page": "kale-1913-page-014",
-       "pdf_page": 14,
-       "label": "13",
-       "box": [
-        462,
-        1888,
-        587,
-        1933
        ],
        "width": 1380,
        "height": 2113
